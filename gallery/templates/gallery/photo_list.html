@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gallery - Family Event Photos{% endblock %}
+
+{% block content %}
+    <div class="user-greeting">Hello, {{ user.username }}!</div>
+
+    <!-- Sort controls -->
+    <div class="sort-bar">
+        <span class="sort-label">Sort by</span>
+        <select class="sort-select" id="sort-select" onchange="window.location.href='?sort='+this.value+'&amp;dir={{ dir }}'">
+            <option value="uploaded" {% if sort == 'uploaded' %}selected{% endif %}>Upload Date</option>
+            <option value="taken" {% if sort == 'taken' %}selected{% endif %}>Date Taken</option>
+        </select>
+        <a href="?sort={{ sort }}&amp;dir={% if dir == 'desc' %}asc{% else %}desc{% endif %}" class="btn btn-sort-dir" title="Toggle ascending/descending">
+            {% if dir == 'desc' %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            {% else %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Admin widget -->
+    {% if is_admin %}
+        <div class="admin-widget animate__animated animate__fadeIn">
+            <div class="admin-widget-info">
+                <span>SYSTEM OPERATOR PANEL:</span> Active accounts: {{ users_count }}.
+                <a href="{% url 'gallery:user_list' %}" style="color: var(--neon-yellow);">Manage Users</a>
+            </div>
+            <div>
+                <a href="{% url 'gallery:user_add' %}" class="btn btn-yellow" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    Add User
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Photo Gallery Grid Wrapper -->
+    <div id="photo-grid"
+         hx-get="{% url 'gallery:photo_list' %}?sort={{ sort }}&amp;dir={{ dir }}"
+         hx-trigger="refreshGrid from:body"
+         hx-target="#photo-grid"
+         hx-swap="outerHTML">
+        {% include 'gallery/partials/photo_grid.html' %}
+    </div>
+{% endblock %}

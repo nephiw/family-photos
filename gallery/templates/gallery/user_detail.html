@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }} - Family Event Photos{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+    <a href="{% url 'gallery:user_list' %}" class="btn btn-purple">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Back to Users
+    </a>
+</div>
+
+<div class="login-wrapper" style="min-height: auto; padding: 0;">
+    <div class="login-card" style="border-color: var(--neon-cyan); box-shadow: var(--shadow-cyan);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--neon-purple); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #fff; margin: 0 auto 1rem;">
+                {{ profile_user.username|first|upper }}
+            </div>
+            <h2 class="neon-text-cyan" style="margin-bottom: 0.25rem;">{{ profile_user.username }}</h2>
+            {% if profile_user.get_full_name %}
+                <p style="color: var(--text-dim); font-size: 1.1rem;">{{ profile_user.get_full_name }}</p>
+            {% endif %}
+        </div>
+
+        <div style="display: grid; gap: 1rem;">
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Email</div>
+                <div class="meta-value">{{ profile_user.email|default:"—" }}</div>
+            </div>
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Role</div>
+                <div class="meta-value">
+                    {% if profile_user.is_superuser %}
+                        <span style="color: var(--neon-yellow);">Administrator</span>
+                    {% else %}
+                        <span style="color: var(--neon-cyan);">Family Member</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Photos Uploaded</div>
+                <div class="meta-value">{{ photo_count }}</div>
+            </div>
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Date Joined</div>
+                <div class="meta-value">{{ profile_user.date_joined|date:"F j, Y" }}</div>
+            </div>
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Last Login</div>
+                <div class="meta-value">{{ profile_user.last_login|date:"F j, Y @ g:i a"|default:"Never" }}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'gallery:user_list' %}" class="btn btn-purple">Back to Users</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

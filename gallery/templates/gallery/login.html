@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}login-page{% endblock %}
+
+{% block title %}Login - Wright Family Photo Exchange{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo">
+            <h2>WRIGHT FAMILY PHOTO</h2>
+            <p>Enter the Gallery</p>
+        </div>
+
+        <form method="post" action="{% url 'gallery:auth_login' %}" class="retro-form">
+            {% csrf_token %}
+            {% if form.errors %}
+            <ul class="errorlist">
+                <li>Username or password was incorrect. Please try again.</li>
+            </ul>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input
+                    type="text"
+                    name="username"
+                    autofocus
+                    required
+                    id="id_username"
+                    class="retro-input"
+                    placeholder="Enter Username"
+                    autocomplete="off"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    id="id_password"
+                    class="retro-input"
+                    placeholder="Enter Password"
+                />
+            </div>
+
+            <input type="hidden" name="next" value="/" />
+
+            <button
+                type="submit"
+                class="btn btn-pink"
+                style="
+                    width: 100%;
+                    margin-top: 1.5rem;
+                    font-size: 1.1rem;
+                    padding: 1rem;
+                "
+            >
+                Access Gallery
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

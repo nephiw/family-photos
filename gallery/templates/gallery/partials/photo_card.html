@@ -1,0 +1,20 @@
+<a href="{% url 'gallery:photo_detail' photo.pk %}" class="photo-card" title="Click to view full photo">
+    
+    <div class="photo-img-wrapper">
+        {% if photo.thumbnail %}
+            <img src="{{ photo.thumbnail.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
+        {% else %}
+            <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
+        {% endif %}
+    </div>
+    
+    <div class="photo-card-info">
+        <span class="photo-uploader">Uploader: @{{ photo.uploaded_by.username }}</span>
+        <span class="photo-meta-inline">
+            {% if photo.date_taken %}
+            <span class="photo-date-taken">Taken: {{ photo.date_taken|date:"M d, Y" }}</span>
+            {% endif %}
+            <span class="photo-date-uploaded">Uploaded: {{ photo.uploaded_at|date:"M d, Y" }}</span>
+        </span>
+    </div>
+</a>

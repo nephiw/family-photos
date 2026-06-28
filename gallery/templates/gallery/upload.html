@@ -1,0 +1,82 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Upload - Family
+Event Photos{% endblock %} {% block content %}
+<div class="upload-page-container">
+    <div class="upload-page-card">
+        <h2 class="neon-text-pink upload-page-title">Upload</h2>
+        <p class="upload-page-subtitle">
+            Drop your photos below or click to browse
+        </p>
+
+        <!-- Drag and drop zone -->
+        <div class="upload-dropzone" id="dropzone">
+            <div class="upload-icon">
+                <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+            </div>
+            <p class="upload-text neon-text-cyan">Drag & Drop Photos Here</p>
+            <p class="upload-subtext">or click to browse from device</p>
+        </div>
+        <input
+            type="file"
+            id="file-input"
+            multiple
+            accept="image/*"
+            style="display: none"
+        />
+
+        <!-- File Progress Monitoring -->
+        <div class="upload-progress-container" id="progress-container">
+            <div class="upload-progress-header">
+                <span class="pulse-loader"></span>
+                <h3 class="upload-progress-title" id="progress-status-title">
+                    Uploading Files...
+                </h3>
+            </div>
+            <div id="progress-items"></div>
+        </div>
+
+        <!-- Upload Complete Notification -->
+        <div id="upload-complete-message" class="upload-complete">
+            <div class="upload-complete-icon">
+                <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h3 class="neon-text-cyan upload-complete-heading">
+                Upload Complete!
+            </h3>
+            <p class="upload-complete-text" id="upload-complete-text">
+                All photos have been processed.
+            </p>
+            <button
+                class="btn btn-pink upload-complete-btn"
+                onclick="window.confirmUploads()"
+            >
+                View Photos in Library
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

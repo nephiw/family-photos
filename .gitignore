@@ -1,0 +1,18 @@
+.env
+
+# Database
+db.sqlite3
+
+# Virtual environment
+venv/
+
+# Media uploads
+media/
+
+# Collected staticfiles
+staticfiles/
+
+# Python cache
+__pycache__/
+*.pyc
+

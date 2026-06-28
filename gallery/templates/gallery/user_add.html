@@ -1,0 +1,49 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Add User - Family
+Event Photos{% endblock %} {% block content %}
+<div class="add-user-wrapper">
+    <div
+        class="add-user-card"
+        style="border-color: var(--neon-cyan); box-shadow: var(--shadow-cyan)"
+    >
+        <div class="add-user-logo">
+            <h2 class="neon-text-cyan">Register User</h2>
+            <p>Add Family Member</p>
+        </div>
+        <form
+            method="post"
+            action="{% url 'gallery:user_add' %}"
+            class="retro-form"
+        >
+            {% csrf_token %} {% if form.non_field_errors %}
+            <ul class="errorlist">
+                {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %} {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }} {% if field.help_text %}
+                <span class="helptext">{{ field.help_text|safe }}</span>
+                {% endif %} {% if field.errors %}
+                <ul class="errorlist">
+                    {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <a href="{% url 'gallery:user_list' %}" class="btn btn-purple"
+                    >Cancel</a
+                >
+                <button type="submit" class="btn btn-cyan">
+                    Register Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

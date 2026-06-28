@@ -1,0 +1,53 @@
+<div class="lightbox-content">
+    <div class="lightbox-img-wrapper">
+        <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Family photo' }}">
+    </div>
+    
+    <div class="lightbox-meta">
+        <div>
+            <div style="font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; font-family: var(--font-retro);">Uploaded By</div>
+            <div style="font-size: 1.3rem; color: var(--neon-cyan); font-weight: bold;">{{ photo.uploaded_by.username }}</div>
+        </div>
+        
+        <div>
+            <div style="font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; font-family: var(--font-retro);">Upload Date</div>
+            <div style="font-size: 1.3rem; color: var(--text-light); font-weight: bold;">{{ photo.uploaded_at|date:"F j, Y @ g:i a" }}</div>
+        </div>
+
+        {% if photo.date_taken %}
+        <div>
+            <div style="font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; font-family: var(--font-retro);">Date Taken</div>
+            <div style="font-size: 1.3rem; color: var(--text-light); font-weight: bold;">{{ photo.date_taken|date:"F j, Y @ g:i a" }}</div>
+        </div>
+        {% endif %}
+
+        <div>
+            <!-- Direct download link with target="_blank" fallback -->
+            <a href="{{ photo.image.url }}" 
+               download="family_photo_{{ photo.pk }}.jpg" 
+               target="_blank" 
+               class="btn btn-pink"
+               style="font-size: 1.1rem; padding: 1rem 2rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Photo
+            </a>
+        </div>
+        
+        <div style="margin-top: 0.5rem;">
+            {% if is_admin or photo.uploaded_by == request.user %}
+            <form action="{% url 'gallery:photo_delete' photo.pk %}" method="post" onsubmit="return confirm('Delete this photo permanently?')" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-red" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Delete Photo
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Inline script to set the dialog title dynamically -->
+<script>
+    document.getElementById('lightbox-title').textContent = "Photo shared by {{ photo.uploaded_by.username }}";
+</script>
