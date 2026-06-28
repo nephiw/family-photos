@@ -2,7 +2,7 @@
 
 ## Overview
 
-I am creating this site to share photos with my family. It is crazy 80's futuristic. It is built with Django and htmx, neither of which I am all that familiar with. I have been using Google's Antigravity app (/home/nephiw/Programs/Antigravity/) to build it. But I am thinking that I don't want to increase my storage bill just to get more access to the API.
+I created this site to share photos with my family. I designed it to have a retro futuristic theme. It is built with Django and htmx, neither of which I am all that familiar with. I am using opencode to help me create the site.
 
 ## Installation
 
@@ -18,17 +18,15 @@ Currently, the site can:
 * Admin's can create new family member accounts
 
 # Bugs
-* Once you view one photo in the gallery, it will be the only photo that load until you refresh the page.
+* Drag and Drop phtoto upload does not work in the Chrome browser, but it does work in all of the other browsers I have tested.
 
 ## Near Future Capabilities
 This is not even close to where I want it to be. Here are some of the things I want to add:
-* Be able to delete photos
+* Be able to undelete photos
   * Admin's can delete any photo
   * Family members can delete their own photos
   * Photos are put into a trash can and can be restored by the admin or original uploader
   * Photos and metadata are deleted permanently after a month in the trash, but I don't want to do a chron job, I want it to be checked when the photos are fetched as a side effect. Maybe in a different process?
-* The photo detail should be the full screen and it should not be popover
-  * The photo detail should be part of the URL
 * I want users to be able to create their own albums to organize the photos they like, and then be able to download the whole album as a zip file.
   * Albums are created by the user and can be named whatever they like
   * Albums can be downloaded as a zip file containing all the photos in the album
@@ -41,4 +39,5 @@ This is not even close to where I want it to be. Here are some of the things I w
 
 These are things I want to add eventually, but not right away.
 * Facial recognition and the ability to auto-add photos of yourself or family members to face based photo album
+* Show a map of where photos were taken as a heat map
 * Sorting / Filtering by date taken, face, location, or other things
