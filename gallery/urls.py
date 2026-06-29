@@ -29,4 +29,15 @@ urlpatterns = [
     path("users/<int:pk>/", views.user_detail, name="user_detail"),
     # Download
     path("download-all/", views.download_zip, name="download_zip"),
+    # Thumbnail polling
+    path(
+        "photos/thumbnail-status/",
+        views.thumbnail_status,
+        name="thumbnail_status",
+    ),
+    path(
+        "photos/partial/card/<int:pk>/",
+        views.photo_card_partial,
+        name="photo_card_partial",
+    ),
 ]

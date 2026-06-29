@@ -56,9 +56,11 @@ class GalleryTests(TestCase):
         photo = Photo.objects.first()
         self.assertEqual(photo.uploaded_by, self.user)
 
-        self.assertIsNotNone(photo.thumbnail)
-        self.assertTrue('_thumb' in photo.thumbnail.name)
-        self.assertTrue(photo.thumbnail.name.endswith('.jpg'))
+        # Thumbnail is now generated asynchronously; verify the generation logic still works
+        thumbnail = photo.make_thumbnail()
+        self.assertIsNotNone(thumbnail)
+        self.assertTrue('_thumb' in thumbnail.name)
+        self.assertTrue(thumbnail.name.endswith('.jpg'))
 
     def test_zip_download(self):
         self.client.login(username='family_member', password='password123')

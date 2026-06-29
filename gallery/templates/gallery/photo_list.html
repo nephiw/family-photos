@@ -46,3 +46,49 @@
         {% include 'gallery/partials/photo_grid.html' %}
     </div>
 {% endblock %}
+
+{% block scripts %}
+{% if photos %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var spinners = document.querySelectorAll('.thumbnail-spinner');
+    if (spinners.length === 0) return;
+
+    var pendingIds = new Set();
+    spinners.forEach(function(s) {
+        var card = s.closest('[data-photo-id]');
+        if (card) pendingIds.add(card.dataset.photoId);
+    });
+
+    var pollInterval = setInterval(async function() {
+        try {
+            var resp = await fetch('{% url "gallery:thumbnail_status" %}');
+            var data = await resp.json();
+
+            var updated = false;
+            data.ready.forEach(function(id) {
+                if (pendingIds.has(String(id))) {
+                    pendingIds.delete(String(id));
+                    updated = true;
+                    var card = document.querySelector('[data-photo-id="' + id + '"]');
+                    if (card) {
+                        fetch('/photos/partial/card/' + id + '/')
+                            .then(function(r) { return r.text(); })
+                            .then(function(html) {
+                                card.outerHTML = html;
+                            });
+                    }
+                }
+            });
+
+            if (data.pending === 0 || pendingIds.size === 0) {
+                clearInterval(pollInterval);
+            }
+        } catch(e) {
+            console.error('Thumbnail poll error:', e);
+        }
+    }, 3000);
+});
+</script>
+{% endif %}
+{% endblock %}

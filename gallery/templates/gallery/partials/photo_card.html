@@ -1,10 +1,13 @@
-<a href="{% url 'gallery:photo_detail' photo.pk %}" class="photo-card" title="Click to view full photo">
+<a href="{% url 'gallery:photo_detail' photo.pk %}" class="photo-card" data-photo-id="{{ photo.pk }}" title="Click to view full photo">
     
     <div class="photo-img-wrapper">
         {% if photo.thumbnail %}
             <img src="{{ photo.thumbnail.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
         {% else %}
-            <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
+            <div class="thumbnail-spinner">
+                <div class="spinner-icon"></div>
+                <span class="spinner-label">Generating thumbnail...</span>
+            </div>
         {% endif %}
     </div>
     

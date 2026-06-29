@@ -23,11 +23,33 @@ class Photo(models.Model):
         ordering = ["-uploaded_at"]
 
     def save(self, *args, **kwargs):
-        # Generate thumbnail on new upload
-        if self.image and not self.thumbnail:
+        is_new = self.pk is None
+        if is_new and self.image:
             self.extract_exif()
-            self.thumbnail = self.make_thumbnail()
         super().save(*args, **kwargs)
+        if is_new and self.image and not self.thumbnail:
+            self._generate_thumbnail_async()
+
+    def _generate_thumbnail_async(self):
+        import threading
+        thread = threading.Thread(target=self._process_thumbnail, args=(self.pk,))
+        thread.daemon = True
+        thread.start()
+
+    @staticmethod
+    def _process_thumbnail(photo_id):
+        import time
+        time.sleep(2)
+        try:
+            photo = Photo.objects.get(pk=photo_id)
+            thumbnail = photo.make_thumbnail()
+            if thumbnail:
+                photo.thumbnail = thumbnail
+                photo.save(update_fields=['thumbnail'])
+        except Photo.DoesNotExist:
+            pass
+        except Exception as e:
+            print(f"Background thumbnail error for photo {photo_id}: {e}")
 
     def delete(self, *args, **kwargs):
         storage = self.image.storage

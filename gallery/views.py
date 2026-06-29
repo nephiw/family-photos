@@ -2,12 +2,16 @@ import os
 import zipfile
 from io import BytesIO
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_GET
 
 from .forms import RetroUserCreationForm
 from .models import Photo
@@ -185,3 +189,24 @@ def user_detail(request, pk):
         "gallery/user_detail.html",
         {"profile_user": user, "photo_count": photo_count},
     )
+
+
+@login_required
+@require_GET
+def thumbnail_status(request):
+    recent = timezone.now() - timedelta(hours=1)
+    ready = Photo.objects.filter(
+        thumbnail__isnull=False,
+        uploaded_at__gte=recent,
+    ).values_list('pk', flat=True)
+    pending = Photo.objects.filter(
+        thumbnail__isnull=True,
+        uploaded_at__gte=recent,
+    ).count()
+    return JsonResponse({"ready": list(ready), "pending": pending})
+
+
+@login_required
+def photo_card_partial(request, pk):
+    photo = get_object_or_404(Photo, pk=pk)
+    return render(request, "gallery/partials/photo_card.html", {"photo": photo})
