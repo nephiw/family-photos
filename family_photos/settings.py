@@ -145,6 +145,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Upload Limits
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB per request
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024  # 1MB — larger files stream to disk
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
+
 # File and Storage Configuration
 USE_S3 = os.getenv('USE_S3', 'False') == 'True'
 

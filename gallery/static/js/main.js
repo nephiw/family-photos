@@ -96,11 +96,14 @@ function initDragAndDrop() {
     }
 
     const filesArray = Array.from(files);
+    const CONCURRENCY = 4;
+    const timestamp = Date.now();
+    let currentIndex = 0;
     let completedCount = 0;
     let successCount = 0;
 
     filesArray.forEach((file, index) => {
-      const itemId = `upload-item-${Date.now()}-${index}`;
+      const itemId = `upload-item-${timestamp}-${index}`;
       const itemHtml = `
                 <div class="upload-progress-item" id="${itemId}">
                     <div style="flex-grow: 1; margin-right: 1rem;">
@@ -115,7 +118,17 @@ function initDragAndDrop() {
                 </div>
             `;
       progressItems.insertAdjacentHTML("beforeend", itemHtml);
-      const itemElement = progressItems.lastElementChild;
+    });
+
+    function uploadNext() {
+      if (currentIndex >= filesArray.length) return;
+
+      const index = currentIndex++;
+      const file = filesArray[index];
+      const itemElement = document.getElementById(
+        `upload-item-${timestamp}-${index}`,
+      );
+      if (!itemElement) return;
 
       uploadFile(file, itemElement, (success) => {
         completedCount++;
@@ -143,9 +156,15 @@ function initDragAndDrop() {
               }
             }
           }, 500);
+        } else {
+          uploadNext();
         }
       });
-    });
+    }
+
+    for (let i = 0; i < Math.min(CONCURRENCY, filesArray.length); i++) {
+      uploadNext();
+    }
   }
 
   function getCsrfToken() {
