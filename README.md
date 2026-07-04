@@ -68,40 +68,71 @@ python manage.py generate_thumbnails
 python manage.py test gallery
 ```
 
-## Deploying to Render
+## Deploying to Railway
 
-This project includes a `render.yaml` for infrastructure-as-code deployment on [Render](https://render.com).
+This project is designed to deploy on [Railway](https://railway.com) with four services: a web server, a Celery worker, PostgreSQL, and Redis.
 
 ### One-click deploy
 
-1. Push this repo to GitHub/GitLab
-2. In the Render dashboard, click **New Blueprint**
-3. Connect your repository
-4. Render reads `render.yaml` and creates three services automatically:
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template)
 
-| Service | Type | Purpose |
+### Manual setup
+
+1. **Push this repo to GitHub**
+2. **Create a new Railway project** at https://railway.com/new
+3. **Select "Deploy from GitHub repo"** and choose your repository
+4. **Add a PostgreSQL database** — Click **Create** → **Database** → **Add PostgreSQL**
+5. **Add a Redis database** — Click **Create** → **Database** → **Add Redis**
+6. **Configure the web service** — Railway auto-detects Django. Set these environment variables using the Raw Editor (use `${{ServiceName.KEY}}` reference syntax):
+
+   ```
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   REDIS_URL=${{Redis.REDIS_URL}}
+   SECRET_KEY=<generate a secure random key>
+   DEBUG=False
+   ALLOWED_HOSTS=.railway.app
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=<choose a password>
+   ```
+
+   The `railway.json` at the project root sets the build and start commands automatically.
+
+7. **Set up the Celery worker** — Click **Create** → **Empty Service**. Connect the same GitHub repo, then under **Settings → Deploy**, set the **Custom Start Command** to:
+
+   ```
+   celery -A family_photos worker -l info
+   ```
+
+   Add the same environment variables from step 6.
+
+### Service overview
+
+| Service | Type | Start Command |
 |---|---|---|
-| `family-photos` | Web | Django app (Gunicorn) |
-| `family-photos-worker` | Worker | Celery async task processor |
-| `family-photos-db` | PostgreSQL | Database |
-| `family-photos-redis` | Redis | Celery message broker |
+| Web (auto-created) | Public | `gunicorn family_photos.wsgi` |
+| Worker (manual) | Private | `celery -A family_photos worker -l info` |
+| PostgreSQL | Plugin | — |
+| Redis | Plugin | — |
 
 ### Required environment variables
 
-Render auto-generates `DATABASE_URL` (PostgreSQL) and `REDIS_URL` (Redis) from the managed services. The `SECRET_KEY` is generated automatically. Set these manually if needed:
+All services need these variables (use Railway's `${{Service.KEY}}` reference syntax):
 
-- `ADMIN_USERNAME` / `ADMIN_PASSWORD` — auto-creates a superuser on first deploy
-- `ALLOWED_HOSTS` — add your custom domain if you have one
+| Variable | Reference | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | PostgreSQL connection |
+| `REDIS_URL` | `${{Redis.REDIS_URL}}` | Celery broker |
+| `SECRET_KEY` | Generate a random value | Django signing |
+| `DEBUG` | `False` | Production mode |
+| `ALLOWED_HOSTS` | `.railway.app` | Allowed domains |
+| `ADMIN_USERNAME` | Your choice | Auto-creates superuser |
+| `ADMIN_PASSWORD` | Your choice | Superuser password |
 
-### Celery worker
+### Notes
 
-The worker service runs `celery -A family_photos worker -l info` and connects to the same Redis and PostgreSQL instances as the web service. No additional configuration is needed — Render starts and monitors it automatically.
-
-### Important notes
-
-- The free-tier Redis (`maxmemoryPolicy: allkeys-lru`) may evict older task results under memory pressure, but active tasks are not affected.
-- The free-tier PostgreSQL has a 90-day idle timeout for inactive projects. Set up a cron or periodic health check to keep it alive.
-- `render.yaml` uses the **Blueprint** (Infrastructure as Code) workflow. You can also create services manually via the Render dashboard instead.
+- Only the web service needs a public domain — generate one under **Settings → Networking → Generate Domain**.
+- The worker connects to the same PostgreSQL and Redis over Railway's private network.
+- Railway's free tier includes $5 of free credits per month, enough for this stack.
 
 ## Current Capabilities
 
