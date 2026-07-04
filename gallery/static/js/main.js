@@ -98,6 +98,7 @@ function initDragAndDrop() {
     const filesArray = Array.from(files);
     let completedCount = 0;
     let successCount = 0;
+    let lastErrorText = "";
 
     filesArray.forEach((file, index) => {
       const itemId = `upload-item-${Date.now()}-${index}`;
@@ -117,9 +118,10 @@ function initDragAndDrop() {
       progressItems.insertAdjacentHTML("beforeend", itemHtml);
       const itemElement = progressItems.lastElementChild;
 
-      uploadFile(file, itemElement, (success) => {
+      uploadFile(file, itemElement, (success, errorText) => {
         completedCount++;
         if (success) successCount++;
+        if (errorText) lastErrorText = errorText;
 
         if (completedCount === filesArray.length) {
           setTimeout(() => {
@@ -134,9 +136,20 @@ function initDragAndDrop() {
               const completeText = document.getElementById(
                 "upload-complete-text",
               );
+              const completeError = document.getElementById(
+                "upload-complete-error",
+              );
 
+              if (completeError && lastErrorText) {
+                completeError.textContent = "Server response: " + lastErrorText;
+                completeError.style.display = "block";
+              }
               if (completeText) {
-                completeText.textContent = `Successfully processed and added ${successCount} of ${filesArray.length} photo(s) to the event library.`;
+                if (successCount === 0) {
+                  completeText.textContent = `Upload failed for all ${filesArray.length} photo(s).`;
+                } else {
+                  completeText.textContent = `Successfully processed and added ${successCount} of ${filesArray.length} photo(s) to the event library.`;
+                }
               }
               if (completeMessage) {
                 completeMessage.style.display = "block";
@@ -165,7 +178,7 @@ function initDragAndDrop() {
 
   function uploadFile(file, itemElement, onComplete) {
     if (!itemElement) {
-      onComplete(false);
+      onComplete(false, "");
       return;
     }
 
@@ -203,11 +216,8 @@ function initDragAndDrop() {
             progressBar.style.backgroundColor = "var(--neon-pink)";
             progressPct.textContent = "Error";
             progressPct.style.color = "var(--neon-pink)";
-            console.error(
-              `Upload error status ${xhr.status}: ${xhr.responseText}`,
-            );
           }
-          onComplete(success);
+          onComplete(success, xhr.status >= 400 ? xhr.responseText : "");
         }
       });
 

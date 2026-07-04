@@ -26,6 +26,7 @@ class Photo(models.Model):
         is_new = self.pk is None
         if is_new and self.image:
             self.extract_exif()
+            self.image.seek(0)
         super().save(*args, **kwargs)
         if is_new and self.image and not self.thumbnail:
             from django.db import transaction

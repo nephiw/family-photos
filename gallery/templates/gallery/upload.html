@@ -70,6 +70,13 @@ Event Photos{% endblock %} {% block content %}
             <p class="upload-complete-text" id="upload-complete-text">
                 All photos have been processed.
             </p>
+            <p
+                class="upload-complete-error"
+                id="upload-complete-error"
+                style="display: none; color: var(--neon-pink); font-size: 0.9rem; margin-top: 0.5rem;"
+            >
+                Check the browser console (F12) or Railway logs for the server error.
+            </p>
             <button
                 class="btn btn-pink upload-complete-btn"
                 onclick="window.confirmUploads()"
