@@ -125,6 +125,7 @@ All services need these variables (use Railway's `${{Service.KEY}}` reference sy
 | `SECRET_KEY` | Generate a random value | Django signing |
 | `DEBUG` | `False` | Production mode |
 | `ALLOWED_HOSTS` | `.railway.app` | Allowed domains |
+| `CSRF_TRUSTED_ORIGINS` | `https://your-custom-domain.com` | Required for custom domains |
 | `ADMIN_USERNAME` | Your choice | Auto-creates superuser |
 | `ADMIN_PASSWORD` | Your choice | Superuser password |
 
