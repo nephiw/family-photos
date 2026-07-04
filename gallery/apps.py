@@ -1,6 +1,7 @@
 import os
 
 from django.apps import AppConfig
+from django.db.utils import OperationalError, ProgrammingError
 
 
 class GalleryConfig(AppConfig):
@@ -11,7 +12,10 @@ class GalleryConfig(AppConfig):
         username = os.getenv('ADMIN_USERNAME')
         password = os.getenv('ADMIN_PASSWORD')
         if username and password:
-            from django.contrib.auth.models import User
-            if not User.objects.filter(username=username).exists():
-                User.objects.create_superuser(username=username, password=password)
-                print(f"Admin user '{username}' created")
+            try:
+                from django.contrib.auth.models import User
+                if not User.objects.filter(username=username).exists():
+                    User.objects.create_superuser(username=username, password=password)
+                    print(f"Admin user '{username}' created")
+            except (OperationalError, ProgrammingError):
+                pass
