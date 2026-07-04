@@ -17,7 +17,7 @@ def get_temporary_image():
     file_obj.seek(0)
     return SimpleUploadedFile("test_image.jpg", file_obj.read(), content_type="image/jpeg")
 
-@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT, CELERY_TASK_ALWAYS_EAGER=True)
 class GalleryTests(TestCase):
     @classmethod
     def tearDownClass(cls):

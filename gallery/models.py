@@ -28,28 +28,9 @@ class Photo(models.Model):
             self.extract_exif()
         super().save(*args, **kwargs)
         if is_new and self.image and not self.thumbnail:
-            self._generate_thumbnail_async()
-
-    def _generate_thumbnail_async(self):
-        import threading
-        thread = threading.Thread(target=self._process_thumbnail, args=(self.pk,))
-        thread.daemon = True
-        thread.start()
-
-    @staticmethod
-    def _process_thumbnail(photo_id):
-        import time
-        time.sleep(2)
-        try:
-            photo = Photo.objects.get(pk=photo_id)
-            thumbnail = photo.make_thumbnail()
-            if thumbnail:
-                photo.thumbnail = thumbnail
-                photo.save(update_fields=['thumbnail'])
-        except Photo.DoesNotExist:
-            pass
-        except Exception as e:
-            print(f"Background thumbnail error for photo {photo_id}: {e}")
+            from django.db import transaction
+            from .tasks import process_photo_thumbnail
+            transaction.on_commit(lambda: process_photo_thumbnail.delay(self.pk))
 
     def delete(self, *args, **kwargs):
         storage = self.image.storage

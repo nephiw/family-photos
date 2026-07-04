@@ -6,7 +6,102 @@ I created this site to share photos with my family. I designed it to have a retr
 
 ## Installation
 
-To run the site locally, first activate they python virtual environment: `source venv/bin/activate` which will install the dependencies and activate the virtual environment. Then run `python manage.py runserver` to start the development server or `python manage.py test gallery` to run the tests for the gallery app.
+To run the site locally:
+
+### 1. Install Python dependencies
+
+Activate the virtual environment and install dependencies:
+
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2. Install and start Redis
+
+Celery uses Redis as a message broker for async thumbnail generation.
+
+**macOS (Homebrew):**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Linux (apt):**
+```bash
+sudo apt install redis-server
+sudo service redis-server start
+```
+
+Verify Redis is running:
+```bash
+redis-cli ping
+# Should return: PONG
+```
+
+### 3. Start the Celery worker
+
+In a separate terminal, activate the venv and start the worker:
+
+```bash
+source venv/bin/activate
+celery -A family_photos worker -l info
+```
+
+### 4. Start the development server
+
+```bash
+python manage.py runserver
+```
+
+### 5. (Optional) Generate thumbnails for existing photos
+
+If you already uploaded photos before setting up Redis/Celery, generate their thumbnails:
+
+```bash
+python manage.py generate_thumbnails
+```
+
+### Run tests
+
+```bash
+python manage.py test gallery
+```
+
+## Deploying to Render
+
+This project includes a `render.yaml` for infrastructure-as-code deployment on [Render](https://render.com).
+
+### One-click deploy
+
+1. Push this repo to GitHub/GitLab
+2. In the Render dashboard, click **New Blueprint**
+3. Connect your repository
+4. Render reads `render.yaml` and creates three services automatically:
+
+| Service | Type | Purpose |
+|---|---|---|
+| `family-photos` | Web | Django app (Gunicorn) |
+| `family-photos-worker` | Worker | Celery async task processor |
+| `family-photos-db` | PostgreSQL | Database |
+| `family-photos-redis` | Redis | Celery message broker |
+
+### Required environment variables
+
+Render auto-generates `DATABASE_URL` (PostgreSQL) and `REDIS_URL` (Redis) from the managed services. The `SECRET_KEY` is generated automatically. Set these manually if needed:
+
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD` — auto-creates a superuser on first deploy
+- `ALLOWED_HOSTS` — add your custom domain if you have one
+
+### Celery worker
+
+The worker service runs `celery -A family_photos worker -l info` and connects to the same Redis and PostgreSQL instances as the web service. No additional configuration is needed — Render starts and monitors it automatically.
+
+### Important notes
+
+- The free-tier Redis (`maxmemoryPolicy: allkeys-lru`) may evict older task results under memory pressure, but active tasks are not affected.
+- The free-tier PostgreSQL has a 90-day idle timeout for inactive projects. Set up a cron or periodic health check to keep it alive.
+- `render.yaml` uses the **Blueprint** (Infrastructure as Code) workflow. You can also create services manually via the Render dashboard instead.
 
 ## Current Capabilities
 
