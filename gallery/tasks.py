@@ -12,15 +12,25 @@ def process_photo_thumbnail(photo_id):
     if not photo.image:
         return f"Photo {photo_id} has no image"
 
-    if photo.thumbnail:
-        return f"Photo {photo_id} already has a thumbnail"
+    results = []
 
-    # Call the model's thumbnail helper to generate the InMemoryUploadedFile
-    thumb_file = photo.make_thumbnail()
-    if thumb_file:
-        # Save the generated thumbnail file to the thumbnail field
-        # photo.thumbnail.save will copy it to storage and save the model
-        photo.thumbnail.save(thumb_file.name, thumb_file, save=True)
-        return f"Thumbnail generated for photo {photo_id}"
-    
-    return f"Failed to generate thumbnail for photo {photo_id}"
+    if not photo.thumbnail:
+        thumb_file = photo.make_thumbnail()
+        if thumb_file:
+            photo.thumbnail.save(thumb_file.name, thumb_file, save=False)
+            results.append("thumbnail")
+        else:
+            results.append("thumbnail_failed")
+
+    if not photo.medium:
+        medium_file = photo.make_medium()
+        if medium_file:
+            photo.medium.save(medium_file.name, medium_file, save=False)
+            results.append("medium")
+        else:
+            results.append("medium_failed")
+
+    if results:
+        photo.save(update_fields=["thumbnail", "medium"])
+
+    return f"Generated {', '.join(results)} for photo {photo_id}"
