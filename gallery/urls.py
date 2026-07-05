@@ -27,6 +27,8 @@ urlpatterns = [
     path("users/", views.user_list, name="user_list"),
     path("users/add/", views.user_add, name="user_add"),
     path("users/<int:pk>/", views.user_detail, name="user_detail"),
+    # Profile
+    path("profile/", views.profile, name="profile"),
     # Download
     path("download-all/", views.download_zip, name="download_zip"),
     # Thumbnail polling

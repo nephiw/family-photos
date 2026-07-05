@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 
-from .forms import RetroUserCreationForm
+from .forms import ProfileForm, RetroUserCreationForm
 from .models import Photo
 
 
@@ -155,6 +155,25 @@ def photo_delete(request, pk):
         return redirect("gallery:photo_list")
 
     return redirect("gallery:photo_detail", pk=pk)
+
+
+@login_required
+def profile(request):
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect("gallery:profile")
+    else:
+        form = ProfileForm(instance=request.user)
+
+    photo_count = Photo.objects.filter(uploaded_by=request.user).count()
+    return render(
+        request,
+        "gallery/profile.html",
+        {"form": form, "photo_count": photo_count},
+    )
 
 
 @login_required

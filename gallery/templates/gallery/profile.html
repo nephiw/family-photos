@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Family Event Photos{% endblock %}
+
+{% block content %}
+<div class="login-wrapper" style="min-height: auto; padding: 0;">
+    <div class="login-card" style="border-color: var(--neon-cyan); box-shadow: var(--shadow-cyan);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--neon-purple); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #fff; margin: 0 auto 1rem;">
+                {{ user.username|first|upper }}
+            </div>
+            <h2 class="neon-text-cyan" style="margin-bottom: 0.25rem;">{{ user.username }}</h2>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">{{ photo_count }} photo(s) uploaded</p>
+        </div>
+
+        <form method="post" class="retro-form">
+            {% csrf_token %}
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="message {{ message.tags }}" style="margin-bottom: 1rem;">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <ul class="errorlist" style="margin-bottom: 1rem;">
+                {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <h3 style="color: var(--neon-pink); font-family: var(--font-retro); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">Account Info</h3>
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                {{ form.first_name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                {{ form.last_name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <h3 style="color: var(--neon-pink); font-family: var(--font-retro); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 1rem;">Change Password</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem;">Leave blank to keep your current password.</p>
+
+            <div class="form-group">
+                <label for="{{ form.new_password1.id_for_label }}">New Password</label>
+                {{ form.new_password1 }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.new_password2.id_for_label }}">Confirm New Password</label>
+                {{ form.new_password2 }}
+                {% if form.new_password2.errors %}
+                <ul class="errorlist">{% for e in form.new_password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+
+            <div class="form-group">
+                <label for="{{ form.old_password.id_for_label }}" style="color: var(--neon-yellow);">Current Password <span style="color: var(--text-dim); font-size: 0.85rem;">(required to save)</span></label>
+                {{ form.old_password }}
+                {% if form.old_password.errors %}
+                <ul class="errorlist">{% for e in form.old_password.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-pink" style="width: 100%; margin-top: 1.5rem; font-size: 1.1rem; padding: 1rem;">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
