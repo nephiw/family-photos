@@ -96,13 +96,14 @@ function initDragAndDrop() {
     }
 
     const filesArray = Array.from(files);
-    let completedCount = 0;
     let successCount = 0;
     let lastErrorText = "";
 
-    filesArray.forEach((file, index) => {
-      const itemId = `upload-item-${Date.now()}-${index}`;
-      const itemHtml = `
+    async function uploadSequentially() {
+      for (let index = 0; index < filesArray.length; index++) {
+        const file = filesArray[index];
+        const itemId = `upload-item-${Date.now()}-${index}`;
+        const itemHtml = `
                 <div class="upload-progress-item" id="${itemId}">
                     <div style="flex-grow: 1; margin-right: 1rem;">
                         <div style="display: flex; justify-content: space-between; font-weight: bold;">
@@ -115,50 +116,53 @@ function initDragAndDrop() {
                     </div>
                 </div>
             `;
-      progressItems.insertAdjacentHTML("beforeend", itemHtml);
-      const itemElement = progressItems.lastElementChild;
+        progressItems.insertAdjacentHTML("beforeend", itemHtml);
+        const itemElement = progressItems.lastElementChild;
 
-      uploadFile(file, itemElement, (success, errorText) => {
-        completedCount++;
-        if (success) successCount++;
-        if (errorText) lastErrorText = errorText;
+        await new Promise((resolve) => {
+          uploadFile(file, itemElement, (success, errorText) => {
+            if (success) successCount++;
+            if (errorText && !lastErrorText) lastErrorText = errorText;
+            resolve();
+          });
+        });
+      }
 
-        if (completedCount === filesArray.length) {
-          setTimeout(() => {
-            progressContainer.style.display = "none";
+      setTimeout(() => {
+        progressContainer.style.display = "none";
 
-            if (successCount === filesArray.length) {
-              window.confirmUploads();
+        if (successCount === filesArray.length) {
+          window.confirmUploads();
+        } else {
+          const completeMessage = document.getElementById(
+            "upload-complete-message",
+          );
+          const completeText = document.getElementById(
+            "upload-complete-text",
+          );
+          const completeError = document.getElementById(
+            "upload-complete-error",
+          );
+
+          if (completeError && lastErrorText) {
+            completeError.textContent = "Server response: " + lastErrorText;
+            completeError.style.display = "block";
+          }
+          if (completeText) {
+            if (successCount === 0) {
+              completeText.textContent = `Upload failed for all ${filesArray.length} photo(s).`;
             } else {
-              const completeMessage = document.getElementById(
-                "upload-complete-message",
-              );
-              const completeText = document.getElementById(
-                "upload-complete-text",
-              );
-              const completeError = document.getElementById(
-                "upload-complete-error",
-              );
-
-              if (completeError && lastErrorText) {
-                completeError.textContent = "Server response: " + lastErrorText;
-                completeError.style.display = "block";
-              }
-              if (completeText) {
-                if (successCount === 0) {
-                  completeText.textContent = `Upload failed for all ${filesArray.length} photo(s).`;
-                } else {
-                  completeText.textContent = `Successfully processed and added ${successCount} of ${filesArray.length} photo(s) to the event library.`;
-                }
-              }
-              if (completeMessage) {
-                completeMessage.style.display = "block";
-              }
+              completeText.textContent = `Successfully processed and added ${successCount} of ${filesArray.length} photo(s) to the event library.`;
             }
-          }, 500);
+          }
+          if (completeMessage) {
+            completeMessage.style.display = "block";
+          }
         }
-      });
-    });
+      }, 500);
+    }
+
+    uploadSequentially();
   }
 
   function getCsrfToken() {
