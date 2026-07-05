@@ -96,14 +96,13 @@ function initDragAndDrop() {
     }
 
     const filesArray = Array.from(files);
+    const MAX_CONCURRENT = 4;
     let successCount = 0;
     let lastErrorText = "";
 
-    async function uploadSequentially() {
-      for (let index = 0; index < filesArray.length; index++) {
-        const file = filesArray[index];
-        const itemId = `upload-item-${Date.now()}-${index}`;
-        const itemHtml = `
+    const itemElements = filesArray.map((file, index) => {
+      const itemId = `upload-item-${Date.now()}-${index}`;
+      const itemHtml = `
                 <div class="upload-progress-item" id="${itemId}">
                     <div style="flex-grow: 1; margin-right: 1rem;">
                         <div style="display: flex; justify-content: space-between; font-weight: bold;">
@@ -116,17 +115,31 @@ function initDragAndDrop() {
                     </div>
                 </div>
             `;
-        progressItems.insertAdjacentHTML("beforeend", itemHtml);
-        const itemElement = progressItems.lastElementChild;
+      progressItems.insertAdjacentHTML("beforeend", itemHtml);
+      return progressItems.lastElementChild;
+    });
 
-        await new Promise((resolve) => {
-          uploadFile(file, itemElement, (success, errorText) => {
-            if (success) successCount++;
-            if (errorText && !lastErrorText) lastErrorText = errorText;
-            resolve();
-          });
+    function uploadOne(index) {
+      return new Promise((resolve) => {
+        uploadFile(filesArray[index], itemElements[index], (success, errorText) => {
+          if (success) successCount++;
+          if (errorText && !lastErrorText) lastErrorText = errorText;
+          resolve();
         });
+      });
+    }
+
+    async function uploadAll() {
+      let next = 0;
+
+      function startNext() {
+        if (next >= filesArray.length) return Promise.resolve();
+        const index = next++;
+        return uploadOne(index).then(startNext);
       }
+
+      const workers = Array.from({ length: Math.min(MAX_CONCURRENT, filesArray.length) }, () => startNext());
+      await Promise.all(workers);
 
       setTimeout(() => {
         progressContainer.style.display = "none";
@@ -162,7 +175,7 @@ function initDragAndDrop() {
       }, 500);
     }
 
-    uploadSequentially();
+    uploadAll();
   }
 
   function getCsrfToken() {
