@@ -31,7 +31,14 @@ class Photo(models.Model):
         if is_new and self.image and not self.thumbnail:
             from django.db import transaction
             from .tasks import process_photo_thumbnail
-            transaction.on_commit(lambda: process_photo_thumbnail.delay(self.pk))
+            transaction.on_commit(lambda: self._queue_thumbnail())
+
+    def _queue_thumbnail(self):
+        from .tasks import process_photo_thumbnail
+        try:
+            process_photo_thumbnail.delay(self.pk)
+        except Exception as e:
+            print(f"Could not queue thumbnail task for photo {self.pk}: {e}")
 
     def delete(self, *args, **kwargs):
         storage = self.image.storage
