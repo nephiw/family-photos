@@ -17,9 +17,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Install and start Redis
+### 2. Set up environment variables
 
-Celery uses Redis as a message broker for async thumbnail generation.
+Copy `.env.example` to `.env` and configure:
+
+```bash
+cp .env.example .env
+```
+
+At minimum, fill in `SECRET_KEY` and set `DEBUG=True`. For S3 support, set `USE_S3=True` and provide AWS credentials.
+
+### 3. Run database migrations
+
+```bash
+python manage.py migrate
+```
+
+### 4. Install and start Redis
+
+Celery uses Redis as a message broker for async thumbnail/medium generation.
 
 **macOS (Homebrew):**
 ```bash
@@ -39,7 +55,7 @@ redis-cli ping
 # Should return: PONG
 ```
 
-### 3. Start the Celery worker
+### 5. Start the Celery worker
 
 In a separate terminal, activate the venv and start the worker:
 
@@ -48,18 +64,24 @@ source venv/bin/activate
 celery -A family_photos worker -l info
 ```
 
-### 4. Start the development server
+### 6. Start the development server
 
 ```bash
 python manage.py runserver
 ```
 
-### 5. (Optional) Generate thumbnails for existing photos
+### 7. (Optional) Generate thumbnails / medium images for existing photos
 
-If you already uploaded photos before setting up Redis/Celery, generate their thumbnails:
+If you already uploaded photos before setting up Redis/Celery, generate their thumbnails and web-optimized images:
 
 ```bash
 python manage.py generate_thumbnails
+```
+
+For large batches, you can queue via Celery instead (requires running worker):
+
+```bash
+python manage.py generate_thumbnails --async
 ```
 
 ### Run tests
@@ -83,7 +105,7 @@ This project is designed to deploy on [Railway](https://railway.com) with four s
 3. **Select "Deploy from GitHub repo"** and choose your repository
 4. **Add a PostgreSQL database** — Click **Create** → **Database** → **Add PostgreSQL**
 5. **Add a Redis database** — Click **Create** → **Database** → **Add Redis**
-6. **Configure the web service** — Railway auto-detects Django. Set these environment variables using the Raw Editor (use `${{ServiceName.KEY}}` reference syntax):
+6. **Configure the web service** — Add these environment variables (use Railway's `${{Service.KEY}}` reference syntax):
 
    ```
    DATABASE_URL=${{Postgres.DATABASE_URL}}
@@ -95,30 +117,69 @@ This project is designed to deploy on [Railway](https://railway.com) with four s
    ADMIN_PASSWORD=<choose a password>
    ```
 
-   The `railway.json` at the project root sets the build and start commands automatically.
+   Then under **Settings**, configure:
+   - **Start Command**: `gunicorn family_photos.wsgi`
+   - **Pre-deploy Command**: `python manage.py migrate`
+   - **Healthcheck Path**: `/`
 
-7. **Set up the Celery worker** — Click **Create** → **Empty Service**. Connect the same GitHub repo, then under **Settings → Deploy**, set the **Custom Start Command** to:
+7. **Set up the Celery worker** — Click **Create** → **Empty Service**. Connect the same GitHub repo. Add the same environment variables from step 6. Under **Settings**, configure:
+
+   - **Start Command**: `celery -A family_photos worker --loglevel=info`
+   - **Pre-deploy Command**: leave empty (workers never run migrations)
+   - **Healthcheck Path**: leave empty (workers don't serve HTTP)
+
+### S3 storage (optional)
+
+The site can store photos on AWS S3 instead of the local filesystem.
+
+1. **Create an S3 bucket** in your preferred region
+2. **Create an IAM user** with this policy (replace the bucket ARN):
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": [
+           "s3:PutObject",
+           "s3:GetObject",
+           "s3:DeleteObject",
+           "s3:ListBucket"
+         ],
+         "Resource": [
+           "arn:aws:s3:::your-bucket-name",
+           "arn:aws:s3:::your-bucket-name/*"
+         ]
+       }
+     ]
+   }
+   ```
+
+3. **Add these environment variables** to both the web and worker services:
 
    ```
-   celery -A family_photos worker -l info
+   USE_S3=True
+   AWS_ACCESS_KEY_ID=<your-access-key>
+   AWS_SECRET_ACCESS_KEY=<your-secret-key>
+   AWS_STORAGE_BUCKET_NAME=<your-bucket-name>
+   AWS_S3_REGION_NAME=<your-bucket-region>
    ```
-
-   Add the same environment variables from step 6.
 
 ### Service overview
 
-| Service | Type | Start Command |
-|---|---|---|
-| Web (auto-created) | Public | `gunicorn family_photos.wsgi` |
-| Worker (manual) | Private | `celery -A family_photos worker -l info` |
-| PostgreSQL | Plugin | — |
-| Redis | Plugin | — |
+| Service | Type | Start Command | Pre-deploy | Healthcheck |
+|---|---|---|---|---|
+| Web (auto-created) | Public | `gunicorn family_photos.wsgi` | `python manage.py migrate` | `/` |
+| Worker (manual) | Private | `celery -A family_photos worker --loglevel=info` | (none) | (none) |
+| PostgreSQL | Plugin | — | — | — |
+| Redis | Plugin | — | — | — |
 
 ### Required environment variables
 
 All services need these variables (use Railway's `${{Service.KEY}}` reference syntax):
 
-| Variable | Reference | Purpose |
+| Variable | Reference / Value | Purpose |
 |---|---|---|
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | PostgreSQL connection |
 | `REDIS_URL` | `${{Redis.REDIS_URL}}` | Celery broker |
@@ -129,11 +190,44 @@ All services need these variables (use Railway's `${{Service.KEY}}` reference sy
 | `ADMIN_USERNAME` | Your choice | Auto-creates superuser |
 | `ADMIN_PASSWORD` | Your choice | Superuser password |
 
+### Custom domain
+
+If you use a custom domain (e.g., `photos.nephiw.com`):
+
+1. Add the domain in **Web service → Settings → Networking → Custom Domain**
+2. Point your DNS to the CNAME target shown in Railway
+3. Set these environment variables:
+
+   ```
+   RAILWAY_PUBLIC_DOMAIN=photos.yourdomain.com
+   CSRF_TRUSTED_ORIGINS=https://photos.yourdomain.com
+   ```
+
+   Update `ALLOWED_HOSTS` to include your domain:
+   ```
+   ALLOWED_HOSTS=.railway.app,photos.yourdomain.com
+   ```
+
+### One-off commands (e.g., generate missing thumbnails)
+
+Use the **Console** tab in the Railway dashboard for your web service. This runs inside the running container with full access to the private network:
+
+```bash
+python manage.py generate_thumbnails
+```
+
+For photos that were uploaded before the `medium` image field was added, this will generate both the 600x600 thumbnail and the 1920x1920 web-optimized version.
+
+### Upload limits
+
+Multiple concurrent uploads are limited to 4 simultaneous XHR requests. Django enforces a 50MB per-request limit and streams files larger than 1MB to disk.
+
 ### Notes
 
 - Only the web service needs a public domain — generate one under **Settings → Networking → Generate Domain**.
 - The worker connects to the same PostgreSQL and Redis over Railway's private network.
 - Railway's free tier includes $5 of free credits per month, enough for this stack.
+- The `railway.json` file only contains build configuration — all deploy settings (healthcheck, pre-deploy, start command) are configured per-service in the Railway dashboard.
 
 ## Current Capabilities
 
