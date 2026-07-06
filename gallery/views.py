@@ -115,28 +115,39 @@ def download_zip(request):
         messages.warning(request, "No photos to download.")
         return redirect("gallery:photo_list")
 
-    def stream_zip():
-        zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
-        used_names = set()
-        for photo in photos:
-            try:
-                name = os.path.basename(photo.image.name)
-                base, ext = os.path.splitext(name)
-                counter = 1
-                while name in used_names:
-                    name = f"{base}_{counter}{ext}"
-                    counter += 1
-                used_names.add(name)
+    def safe_chunks(p):
+        try:
+            f = p.image.open("rb")
+        except Exception as e:
+            print(f"Failed to open photo {p.id} for zip: {e}")
+            return
+        try:
+            with f:
+                while True:
+                    chunk = f.read(65536)
+                    if not chunk:
+                        break
+                    yield chunk
+        except Exception as e:
+            print(f"Failed reading photo {p.id} for zip: {e}")
 
-                with photo.image.open("rb") as f:
-                    data = f.read()
-                zs.add(data, name)
-            except Exception as e:
-                print(f"Failed to zip photo {photo.id}: {e}")
+    zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
+    used_names = set()
+    for photo in photos:
+        try:
+            name = os.path.basename(photo.image.name)
+            base, ext = os.path.splitext(name)
+            counter = 1
+            while name in used_names:
+                name = f"{base}_{counter}{ext}"
+                counter += 1
+            used_names.add(name)
 
-        yield from zs
+            zs.add(safe_chunks(photo), name)
+        except Exception as e:
+            print(f"Failed to zip photo {photo.id}: {e}")
 
-    response = StreamingHttpResponse(stream_zip(), content_type="application/zip")
+    response = StreamingHttpResponse(zs, content_type="application/zip")
     response["Content-Disposition"] = 'attachment; filename="family_event_photos.zip"'
     return response
 
