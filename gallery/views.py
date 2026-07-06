@@ -115,14 +115,6 @@ def download_zip(request):
         messages.warning(request, "No photos to download.")
         return redirect("gallery:photo_list")
 
-    def photo_chunks(p):
-        with p.image.open("rb") as f:
-            while True:
-                chunk = f.read(65536)
-                if not chunk:
-                    break
-                yield chunk
-
     zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     used_names = set()
     for photo in photos:
@@ -135,7 +127,9 @@ def download_zip(request):
                 counter += 1
             used_names.add(name)
 
-            zs.add(photo_chunks(photo), name)
+            with photo.image.open("rb") as f:
+                data = f.read()
+            zs.add(data, name)
         except Exception as e:
             print(f"Failed to zip photo {photo.id}: {e}")
 
