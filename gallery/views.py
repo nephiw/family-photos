@@ -1,14 +1,14 @@
 import os
-import zipfile
-from io import BytesIO
 
 from datetime import timedelta
+
+import zipstream
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
@@ -115,27 +115,31 @@ def download_zip(request):
         messages.warning(request, "No photos to download.")
         return redirect("gallery:photo_list")
 
-    buffer = BytesIO()
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        used_names = set()
-        for photo in photos:
-            try:
-                name = os.path.basename(photo.image.name)
+    def photo_chunks(p):
+        with p.image.open("rb") as f:
+            while True:
+                chunk = f.read(65536)
+                if not chunk:
+                    break
+                yield chunk
 
-                base, ext = os.path.splitext(name)
-                counter = 1
-                while name in used_names:
-                    name = f"{base}_{counter}{ext}"
-                    counter += 1
-                used_names.add(name)
+    zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
+    used_names = set()
+    for photo in photos:
+        try:
+            name = os.path.basename(photo.image.name)
+            base, ext = os.path.splitext(name)
+            counter = 1
+            while name in used_names:
+                name = f"{base}_{counter}{ext}"
+                counter += 1
+            used_names.add(name)
 
-                with photo.image.open("rb") as f:
-                    zip_file.writestr(name, f.read())
-            except Exception as e:
-                print(f"Failed to zip photo {photo.id}: {e}")
+            zs.add(photo_chunks(photo), name)
+        except Exception as e:
+            print(f"Failed to zip photo {photo.id}: {e}")
 
-    buffer.seek(0)
-    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response = StreamingHttpResponse(zs, content_type="application/zip")
     response["Content-Disposition"] = 'attachment; filename="family_event_photos.zip"'
     return response
 

@@ -9,3 +9,4 @@ psycopg2-binary>=2.9
 whitenoise>=6.0
 celery>=5.3
 redis>=5.0
+zipstream-ng>=1.9

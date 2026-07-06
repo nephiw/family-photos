@@ -1,15 +1,15 @@
 // Synthwave Photo Gallery JavaScript
 
-// Hide brand title on scroll
+// Show bottom nav bar on scroll
 document.addEventListener("DOMContentLoaded", () => {
-  const header = document.querySelector(".header-container");
-  if (!header) return;
+  const bottomNav = document.querySelector(".bottom-nav");
+  if (!bottomNav) return;
 
   let ticking = false;
   window.addEventListener("scroll", () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        header.classList.toggle("header-scrolled", window.scrollY > 60);
+        bottomNav.classList.toggle("is-visible", window.scrollY > 60);
         ticking = false;
       });
       ticking = true;
