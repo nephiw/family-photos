@@ -231,30 +231,26 @@ Multiple concurrent uploads are limited to 4 simultaneous XHR requests. Django e
 
 ## Current Capabilities
 
-Currently, the site can:
-* Upload Photos
-* View photos
-* Login as an administrator
-* Login as a family member
-* Admin's can create new family member accounts
+* Upload photos with drag-and-drop or file picker
+* Organize photos into **albums** (each user has private albums + a shared "Family Photos" album)
+* **Bulk actions** — select multiple photos to delete, add to another album, or create a new album from selection
+* **Download** — download all photos or individual albums as ZIP files
+* View photos with EXIF metadata, date taken, and album tags
+* Photo detail view with prev/next navigation following sort order
+* **Admin user management** — create, edit, and view family member accounts
+* **Admin album oversight** — admins can view any user's private albums via `/users/:id/albums`
+* Login as administrator or family member
+* Thumbnails and web-optimized medium images generated asynchronously via Celery
+* Retro 80s synthwave/neon UI theme
 
 # Bugs
-* Drag and Drop phtoto upload does not work in the Chrome browser, but it does work in all of the other browsers I have tested.
+* Drag and Drop photo upload does not work in the Chrome browser, but it does work in all of the other browsers I have tested.
 
 ## Near Future Capabilities
-This is not even close to where I want it to be. Here are some of the things I want to add:
-* Be able to undelete photos
-  * Admin's can delete any photo
-  * Family members can delete their own photos
-  * Photos are put into a trash can and can be restored by the admin or original uploader
-  * Photos and metadata are deleted permanently after a month in the trash, but I don't want to do a chron job, I want it to be checked when the photos are fetched as a side effect. Maybe in a different process?
-* I want users to be able to create their own albums to organize the photos they like, and then be able to download the whole album as a zip file.
-  * Albums are created by the user and can be named whatever they like
-  * Albums can be downloaded as a zip file containing all the photos in the album
-  * Albums can be shared with other family members to view or download
-* Create a method of viewing photos where swiping up/down goes to previous or next photo while swiping left/right chooses to add it to a photo album or remove it from the current album
-  * They can view all of the photos, or they can view an album. When they view an album, if they swipe left the photo is removed, swiping right the first time allows them to pick an album to add the photo to, or if one is already selected, adding the photo to that album.
-  * Every user starts off with a default album that contains no photos.
+* Soft delete / trash can for photos with auto-cleanup
+* Swipe-based mobile photo viewer (swipe up/down for prev/next, left/right for album management)
+* Album sharing between users (currently albums are private to their creator)
+* Facial recognition to auto-sort photos into face-based albums
 
 ## Far Future Capabilities
 

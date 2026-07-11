@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add to Album - Family Event Photos{% endblock %}
+
+{% block content %}
+<div class="login-wrapper" style="min-height: auto; padding: 0;">
+    <div class="login-card" style="border-color: var(--neon-cyan); box-shadow: var(--shadow-cyan); max-width: 600px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 class="neon-text-cyan">Add to Album</h2>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Choose an album for this photo</p>
+        </div>
+
+        <form method="post" action="{% url 'gallery:photo_add_to_album' photo.pk %}" class="retro-form">
+            {% csrf_token %}
+
+            <div style="display: grid; gap: 0.5rem; margin-bottom: 1.5rem;">
+                {% for album in albums %}
+                {% if album.pk in already_in %}
+                <label class="album-choose-option already-in">
+                    <input type="radio" name="album" value="{{ album.pk }}" disabled style="margin-right: 0.5rem; width: 1em; height: 1em;">
+                    <div style="min-width: 0;">
+                        <div style="font-weight: bold; color: var(--text-dim); font-size: 0.8rem;">{{ album.name }}</div>
+                        <div style="color: var(--text-dim); font-size: 0.7rem; font-style: italic;">Already in this album</div>
+                    </div>
+                </label>
+                {% endif %}
+                {% endfor %}
+
+                {% for album in albums %}
+                {% if album.pk not in already_in %}
+                <label class="album-choose-option">
+                    <input type="radio" name="album" value="{{ album.pk }}" style="margin-right: 0.75rem; width: 1.2em; height: 1.2em;">
+                    <div>
+                        <div style="font-weight: bold; color: var(--neon-cyan);">{{ album.name }}</div>
+                        {% if album.description %}
+                            <div style="color: var(--text-dim); font-size: 0.85rem;">{{ album.description }}</div>
+                        {% endif %}
+                    </div>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Create New Album -->
+            <details style="margin-bottom: 1.5rem; border: 1px solid var(--neon-purple); border-radius: 4px; padding: 0.75rem;">
+                <summary style="cursor: pointer; font-family: var(--font-retro); font-size: 0.9rem; color: var(--neon-pink); list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Create New Album
+                </summary>
+                <div style="margin-top: 0.75rem;">
+                    <input type="text" name="new_album_name" class="retro-input" placeholder="Album name..." style="width: 100%; margin-bottom: 0.5rem;">
+                    <button type="submit" name="create_and_add" value="1" class="btn btn-pink" style="width: 100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Create &amp; Add Photo
+                    </button>
+                </div>
+            </details>
+
+            <div class="form-actions">
+                <a href="{% url 'gallery:photo_detail' photo.pk %}" class="btn btn-purple">Cancel</a>
+                <button type="submit" class="btn btn-cyan">Add to Album</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Choose Photos - {{ album.name }}{% endblock %}
+
+{% block content %}
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'gallery:album_detail' album.pk %}" class="btn btn-purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Back to {{ album.name }}
+        </a>
+    </div>
+
+    <h1 style="margin-bottom: 1.5rem;">Choose Photos for {{ album.name }}</h1>
+
+    {% if photos %}
+    <form method="post" action="{% url 'gallery:album_choose_photos' album.pk %}">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            {% for photo in photos %}
+            <label class="album-choose-photo {% if photo.pk in already_in %}already-in{% endif %}">
+                <input type="checkbox" name="photos" value="{{ photo.pk }}" {% if photo.pk in already_in %}disabled checked{% endif %} style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 1; width: 1.2em; height: 1.2em;">
+                <div class="photo-img-wrapper" style="padding-top: 100%;">
+                    {% if photo.thumbnail %}
+                        <img src="{{ photo.thumbnail.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
+                    {% else %}
+                        <div class="thumbnail-spinner">
+                            <div class="spinner-icon"></div>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if photo.pk in already_in %}
+                <div class="album-choose-badge">Already in album</div>
+                {% endif %}
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'gallery:album_detail' album.pk %}" class="btn btn-purple">Cancel</a>
+            <button type="submit" class="btn btn-cyan">Add Selected Photos</button>
+        </div>
+    </form>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-state-text">No Photos Available</p>
+        <p class="empty-state-subtext">Upload some photos first, then come back to choose them.</p>
+        <a href="{% url 'gallery:photo_upload' %}?album={{ album.pk }}" class="btn btn-pink">Upload Photos</a>
+    </div>
+    {% endif %}
+{% endblock %}
