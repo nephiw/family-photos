@@ -602,6 +602,58 @@ def thumbnail_status(request):
 
 
 @login_required
+def bulk_download(request, album_pk):
+    album = get_object_or_404(Album, pk=album_pk)
+    raw = request.POST.get("photos", "")
+    ids = [int(x) for x in raw.split(",") if x.strip().isdigit()]
+    if not ids:
+        messages.warning(request, "No photos selected.")
+        return redirect("gallery:album_detail", pk=album_pk)
+
+    photos = Photo.objects.filter(pk__in=ids)
+    if not photos.exists():
+        messages.warning(request, "No photos found.")
+        return redirect("gallery:album_detail", pk=album_pk)
+
+    filename = f"{album.name.lower().replace(' ', '_')}_selected.zip"
+
+    def safe_chunks(p):
+        try:
+            f = p.image.open("rb")
+        except Exception as e:
+            print(f"Failed to open photo {p.id} for zip: {e}")
+            return
+        try:
+            with f:
+                while True:
+                    chunk = f.read(65536)
+                    if not chunk:
+                        break
+                    yield chunk
+        except Exception as e:
+            print(f"Failed reading photo {p.id} for zip: {e}")
+
+    zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
+    used_names = set()
+    for photo in photos:
+        try:
+            name = os.path.basename(photo.image.name)
+            base, ext = os.path.splitext(name)
+            counter = 1
+            while name in used_names:
+                name = f"{base}_{counter}{ext}"
+                counter += 1
+            used_names.add(name)
+            zs.add(safe_chunks(photo), name)
+        except Exception as e:
+            print(f"Failed to zip photo {photo.id}: {e}")
+
+    response = StreamingHttpResponse(zs, content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
 def photo_card_partial(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
     return render(request, "gallery/partials/photo_card.html", {"photo": photo})

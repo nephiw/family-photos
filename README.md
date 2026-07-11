@@ -257,4 +257,4 @@ Multiple concurrent uploads are limited to 4 simultaneous XHR requests. Django e
 These are things I want to add eventually, but not right away.
 * Facial recognition and the ability to auto-add photos of yourself or family members to face based photo album
 * Show a map of where photos were taken as a heat map
-* Sorting / Filtering by date taken, face, location, or other things
+* Sorting / Filtering by face, location, or other things

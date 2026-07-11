@@ -20,9 +20,9 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
                 <span class="btn-text">Bulk Action</span>
             </button>
-            <a href="{% url 'gallery:album_download_zip' album.pk %}" class="btn btn-cyan" title="Download All" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            <a href="{% url 'gallery:album_download_zip' album.pk %}" class="btn btn-cyan" title="Download Album" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span class="btn-text">Download All</span>
+                <span class="btn-text">Download Album</span>
             </a>
             <a href="{% url 'gallery:photo_upload' %}?album={{ album.pk }}" class="btn btn-pink" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -44,6 +44,14 @@
     <div id="bulk-bar" class="bulk-bar" style="display: none;">
         <span id="bulk-count" style="font-family: var(--font-retro); font-size: 0.85rem; color: var(--neon-yellow);">0 selected</span>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button type="button" id="bulk-toggle-all" class="btn btn-purple" onclick="selectAll()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg id="toggle-all-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span class="btn-text">Toggle All</span>
+            </button>
+            <button type="button" class="btn btn-cyan" onclick="bulkDownload()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download
+            </button>
             <button type="button" class="btn btn-red" onclick="bulkDelete()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 Delete
@@ -162,6 +170,12 @@ function toggleBulkMode() {
 function updateBulkCount() {
     var checked = document.querySelectorAll('.bulk-checkbox input:checked').length;
     document.getElementById('bulk-count').textContent = checked + ' selected';
+    updateToggleIcon();
+    var bulkBar = document.getElementById('bulk-bar');
+    bulkBar.querySelectorAll('.btn').forEach(function(btn) {
+        if (btn.id === 'bulk-toggle-all') return;
+        btn.disabled = checked === 0;
+    });
 }
 
 function getSelectedPhotoIds() {
@@ -170,6 +184,46 @@ function getSelectedPhotoIds() {
         ids.push(cb.value);
     });
     return ids;
+}
+
+function selectAll() {
+    var checkboxes = document.querySelectorAll('.bulk-checkbox input');
+    var allChecked = true;
+    checkboxes.forEach(function(cb) { if (!cb.checked) allChecked = false; });
+    checkboxes.forEach(function(cb) { cb.checked = !allChecked; });
+    updateBulkCount();
+    updateToggleIcon();
+}
+
+function updateToggleIcon() {
+    var icon = document.getElementById('toggle-all-icon');
+    if (!icon) return;
+    var allChecked = true;
+    document.querySelectorAll('.bulk-checkbox input').forEach(function(cb) { if (!cb.checked) allChecked = false; });
+    if (allChecked) {
+        icon.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>';
+    } else {
+        icon.innerHTML = '<polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>';
+    }
+}
+
+function bulkDownload() {
+    var ids = getSelectedPhotoIds();
+    if (ids.length === 0) { alert('No photos selected.'); return; }
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "gallery:bulk_download" album.pk %}';
+    var photosInput = document.createElement('input');
+    photosInput.type = 'hidden';
+    photosInput.name = 'photos';
+    photosInput.value = ids.join(',');
+    form.appendChild(photosInput);
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrf) form.appendChild(csrf.cloneNode(true));
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 }
 
 function bulkDelete() {
