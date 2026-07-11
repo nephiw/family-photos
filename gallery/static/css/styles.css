@@ -808,19 +808,12 @@ dialog::backdrop {
 
 .photo-detail-main {
     display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-}
-
-@media (max-width: 900px) {
-    .photo-detail-main {
-        flex-direction: column;
-    }
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .photo-detail-image-wrapper {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
     border: 3px solid var(--neon-purple);
     box-shadow: 0 0 15px rgba(157, 0, 255, 0.4);
     background-color: #000;
@@ -831,25 +824,38 @@ dialog::backdrop {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 80vh;
+    max-height: calc(100vh - 3rem);
     object-fit: contain;
 }
 
-.photo-detail-sidebar {
-    width: 300px;
-    flex-shrink: 0;
+.photo-detail-meta-row {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
+    flex-wrap: wrap;
     background-color: var(--bg-card);
     border: 2px solid var(--neon-purple);
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
 }
 
-@media (max-width: 900px) {
-    .photo-detail-sidebar {
-        width: 100%;
+.photo-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.photo-detail-actions .btn {
+    width: fit-content;
+}
+
+@media (max-width: 600px) {
+    .photo-detail-actions .btn .btn-text {
+        display: none;
+    }
+    .photo-detail-actions .btn {
+        padding: 0.5rem;
+        min-width: 36px;
+        min-height: 36px;
     }
 }
 
@@ -880,8 +886,8 @@ dialog::backdrop {
 .photo-detail-actions {
     margin-top: auto;
     display: flex;
-    flex-direction: column;
     gap: 1rem;
+    justify-content: flex-end;
 }
 
 /* Upload Page */
