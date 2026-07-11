@@ -178,6 +178,12 @@ a:hover {
     white-space: nowrap;
 }
 
+.btn-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .btn-cyan {
     background-color: transparent;
     border: 2px solid var(--neon-cyan);
@@ -364,6 +370,10 @@ a:hover {
     text-shadow: 0 0 4px var(--neon-cyan);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
+}
+
+.retro-input[type="checkbox"] {
+    width: 1em;
 }
 
 .retro-input {
@@ -661,6 +671,7 @@ dialog::backdrop {
 }
 
 .sort-select {
+    min-width: 18ch;
     font-family: var(--font-retro);
     font-size: 0.75rem;
     padding: 0.35rem 0.8rem;
@@ -1009,12 +1020,24 @@ dialog::backdrop {
 }
 
 /* Narrow screens: nav action buttons become icon-only */
-@media (max-width: 850px) {
+@media (max-width: 970px) {
     .nav-actions .btn .btn-text {
         display: none;
     }
     .nav-actions .btn {
         padding: 0.5rem;
+        min-width: 36px;
+        min-height: 36px;
+    }
+}
+
+/* Download All: icon-only on narrow screens */
+@media (max-width: 600px) {
+    .sort-bar .btn .btn-text {
+        display: none;
+    }
+    .sort-bar .btn {
+        padding: 0.4rem;
         min-width: 36px;
         min-height: 36px;
     }
@@ -1053,4 +1076,22 @@ dialog::backdrop {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Helper classes */
+
+.flex-container {
+    display: flex;
+}
+
+.space-between {
+    justify-content: space-between;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.gap\:half {
+    gap: 0.5rem;
 }

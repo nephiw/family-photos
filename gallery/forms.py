@@ -21,6 +21,48 @@ class RetroUserCreationForm(UserCreationForm):
             })
 
 
+class AdminUserUpdateForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label="New password",
+        widget=forms.PasswordInput(attrs={"placeholder": "Leave blank to keep current"}),
+        strip=False,
+        required=False,
+    )
+    password2 = forms.CharField(
+        label="Confirm new password",
+        widget=forms.PasswordInput(attrs={"placeholder": "Repeat new password"}),
+        strip=False,
+        required=False,
+    )
+
+    class Meta:
+        model = User
+        fields = ["username", "first_name", "last_name", "email", "is_superuser", "is_active"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({"class": "retro-input", "autocomplete": "off"})
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get("password1")
+        p2 = self.cleaned_data.get("password2")
+        if p1 or p2:
+            if p1 != p2:
+                raise forms.ValidationError("Passwords do not match.")
+            validate_password(p1, self.instance)
+        return p2
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        new_pw = self.cleaned_data.get("password1")
+        if new_pw:
+            user.set_password(new_pw)
+        if commit:
+            user.save()
+        return user
+
+
 class ProfileForm(forms.ModelForm):
     old_password = forms.CharField(
         label="Current password",

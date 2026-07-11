@@ -53,6 +53,7 @@
         </div>
 
         <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'gallery:user_edit' profile_user.pk %}" class="btn btn-cyan">Edit User</a>
             <a href="{% url 'gallery:user_list' %}" class="btn btn-purple">Back to Users</a>
         </div>
     </div>

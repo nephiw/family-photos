@@ -1,10 +1,7 @@
 import os
-
 from datetime import timedelta
 
 import zipstream
-
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
@@ -13,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 
-from .forms import ProfileForm, RetroUserCreationForm
+from .forms import AdminUserUpdateForm, ProfileForm, RetroUserCreationForm
 from .models import Photo
 
 
@@ -45,7 +42,11 @@ def photo_list(request):
 
     photos = Photo.objects.all().order_by(sort_by)
     if request.htmx and request.headers.get("HX-Target") == "photo-grid":
-        return render(request, "gallery/partials/photo_grid.html", {"photos": photos, "sort": sort_field, "dir": sort_dir})
+        return render(
+            request,
+            "gallery/partials/photo_grid.html",
+            {"photos": photos, "sort": sort_field, "dir": sort_dir},
+        )
 
     users_count = User.objects.count()
     context = {
@@ -77,12 +78,16 @@ def photo_upload(request):
 
         if request.htmx:
             photos = Photo.objects.all()
-            return render(request, "gallery/partials/photo_grid.html", {"photos": photos})
+            return render(
+                request, "gallery/partials/photo_grid.html", {"photos": photos}
+            )
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"success": True, "count": len(uploaded_photos)})
 
-        messages.success(request, f"Successfully uploaded {len(uploaded_photos)} photos!")
+        messages.success(
+            request, f"Successfully uploaded {len(uploaded_photos)} photos!"
+        )
         return redirect("gallery:photo_list")
 
     return render(request, "gallery/upload.html")
@@ -92,10 +97,14 @@ def photo_upload(request):
 def photo_detail(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
     if request.htmx:
-        return render(request, "gallery/partials/photo_detail.html", {
-            "photo": photo,
-            "is_admin": request.user.is_superuser,
-        })
+        return render(
+            request,
+            "gallery/partials/photo_detail.html",
+            {
+                "photo": photo,
+                "is_admin": request.user.is_superuser,
+            },
+        )
     photos = Photo.objects.all()
     return render(
         request,
@@ -223,13 +232,33 @@ def user_detail(request, pk):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
+def user_edit(request, pk):
+    target_user = get_object_or_404(User, pk=pk)
+    if request.method == "POST":
+        form = AdminUserUpdateForm(request.POST, instance=target_user)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, f"User '{target_user.username}' updated successfully!"
+            )
+            return redirect("gallery:user_detail", pk=pk)
+    else:
+        form = AdminUserUpdateForm(instance=target_user)
+
+    return render(
+        request, "gallery/user_edit.html", {"form": form, "target_user": target_user}
+    )
+
+
+@login_required
 @require_GET
 def thumbnail_status(request):
     recent = timezone.now() - timedelta(hours=1)
     ready = Photo.objects.filter(
         thumbnail__isnull=False,
         uploaded_at__gte=recent,
-    ).values_list('pk', flat=True)
+    ).values_list("pk", flat=True)
     pending = Photo.objects.filter(
         thumbnail__isnull=True,
         uploaded_at__gte=recent,
