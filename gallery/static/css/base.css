@@ -496,17 +496,17 @@ a:hover {
 
 @media (max-width: 970px) {
     .nav-actions .btn .btn-text { display: none; }
-    .nav-actions .btn { padding: 0.5rem; min-width: 36px; min-height: 36px; }
+    .nav-actions .btn { padding: 0.5rem; min-width: 46px; min-height: 36px; }
     .bulk-bar .btn .btn-text { display: none; }
-    .bulk-bar .btn { padding: 0.4rem; min-width: 36px; min-height: 36px; }
+    .bulk-bar .btn { padding: 0.4rem; min-width: 46px; min-height: 36px; }
 }
 
 @media (max-width: 600px) {
     .sort-bar .btn .btn-text { display: none; }
-    .sort-bar .btn { padding: 0.4rem; min-width: 36px; min-height: 36px; }
+    .sort-bar .btn { padding: 0.4rem; min-width: 46px; min-height: 36px; }
 }
 
 @media (max-width: 768px) {
     .album-controls .btn-text { display: none; }
-    .album-controls .btn { padding: 0.4rem; min-width: 36px; min-height: 36px; }
+    .album-controls .btn { padding: 0.4rem; min-width: 46px; min-height: 36px; }
 }
