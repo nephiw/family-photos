@@ -390,10 +390,10 @@ def download_zip(request, album_pk=None):
         album = get_object_or_404(Album, pk=album_pk)
         photo_ids = album.photoalbum_set.values_list("photo_id", flat=True)
         photos = Photo.objects.filter(pk__in=photo_ids)
-        filename = f"{album.name.lower().replace(' ', '_')}_photos.zip"
+        filename = f"{album.name.lower().replace(' ', '_')}_album.zip"
     else:
         photos = Photo.objects.all()
-        filename = "family_event_photos.zip"
+        filename = "family_photos.zip"
 
     if not photos.exists():
         messages.warning(request, "No photos to download.")

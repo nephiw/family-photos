@@ -122,6 +122,58 @@
     box-shadow: 0 0 15px rgba(157, 0, 255, 0.4);
     background-color: #000;
     overflow: hidden;
+    position: relative;
+}
+
+.photo-detail-clickable {
+    cursor: default;
+    will-change: transform, opacity;
+}
+
+.photo-detail-shake {
+    animation: photo-shake 0.4s ease-in-out;
+}
+
+@keyframes photo-shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-12px); }
+    30% { transform: translateX(10px); }
+    45% { transform: translateX(-8px); }
+    60% { transform: translateX(6px); }
+    75% { transform: translateX(-3px); }
+    90% { transform: translateX(1px); }
+}
+
+.photo-detail-click-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.0);
+    transition: color 0.2s ease, background-color 0.2s ease;
+    pointer-events: none;
+}
+
+.photo-detail-click-zone-left {
+    left: 0;
+    cursor: w-resize;
+}
+
+.photo-detail-click-zone-right {
+    right: 0;
+    cursor: e-resize;
+}
+
+.photo-detail-clickable:hover .photo-detail-click-zone {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.photo-detail-clickable:hover .photo-detail-click-zone:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .photo-detail-image {

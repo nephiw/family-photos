@@ -1,5 +1,128 @@
 // Synthwave Photo Gallery JavaScript
 
+// Photo detail: click-to-navigate and swipe support
+document.addEventListener("DOMContentLoaded", () => {
+  const wrapper = document.querySelector(".photo-detail-clickable");
+  if (!wrapper) return;
+
+  const prevUrl = wrapper.dataset.prevUrl || "";
+  const nextUrl = wrapper.dataset.nextUrl || "";
+  const THRESHOLD = 80;
+  const RESISTANCE = 0.3;
+
+  // Click: left 25% = prev, right 25% = next
+  wrapper.addEventListener("click", (e) => {
+    if (wrapper._swiped) {
+      wrapper._swiped = false;
+      return;
+    }
+    const rect = wrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = x / rect.width;
+
+    if (pct < 0.25 && prevUrl) {
+      window.location.href = prevUrl;
+    } else if (pct > 0.75 && nextUrl) {
+      window.location.href = nextUrl;
+    }
+  });
+
+  // Swipe with animated card movement
+  let startX = 0;
+  let startY = 0;
+  let swiping = false;
+  let decided = false;
+  let isHorizontal = false;
+
+  wrapper.addEventListener("touchstart", (e) => {
+    if (wrapper._animating) return;
+    startX = e.changedTouches[0].clientX;
+    startY = e.changedTouches[0].clientY;
+    swiping = true;
+    decided = false;
+    isHorizontal = false;
+    wrapper.style.transition = "none";
+  }, { passive: true });
+
+  wrapper.addEventListener("touchmove", (e) => {
+    if (!swiping || wrapper._animating) return;
+
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+
+    // Decide direction on first significant move
+    if (!decided && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+      decided = true;
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+
+    if (!isHorizontal) {
+      // Vertical: cancel swipe, let scroll happen
+      if (decided) swiping = false;
+      return;
+    }
+
+    e.preventDefault();
+
+    // Determine if this direction is allowed
+    const movingLeft = dx < 0;
+    const movingRight = dx > 0;
+    const hasTarget = (movingLeft && nextUrl) || (movingRight && prevUrl);
+
+    // Apply resistance when swiping toward a dead end
+    const effectiveDx = hasTarget ? dx : dx * RESISTANCE;
+
+    const progress = Math.min(Math.abs(effectiveDx) / wrapper.offsetWidth, 1);
+    const scale = 1 - progress * 0.05;
+    const opacity = 1 - progress * 0.3;
+
+    wrapper.style.transform = `translateX(${effectiveDx}px) scale(${scale})`;
+    wrapper.style.opacity = opacity;
+  }, { passive: false });
+
+  wrapper.addEventListener("touchend", (e) => {
+    if (!swiping || wrapper._animating) return;
+    swiping = false;
+
+    const dx = e.changedTouches[0].clientX - startX;
+    const movingLeft = dx < 0;
+    const movingRight = dx > 0;
+    const hasTarget = (movingLeft && nextUrl) || (movingRight && prevUrl);
+    const effectiveDx = hasTarget ? dx : dx * RESISTANCE;
+
+    wrapper.style.transition = "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease";
+
+    if (Math.abs(effectiveDx) >= THRESHOLD) {
+      if (hasTarget) {
+        // Swipe off-screen then navigate
+        wrapper._animating = true;
+        wrapper._swiped = true;
+        const offscreen = movingLeft ? "-110%" : "110%";
+        const targetUrl = movingLeft ? nextUrl : prevUrl;
+        wrapper.style.transform = `translateX(${offscreen}) scale(0.9)`;
+        wrapper.style.opacity = "0";
+        setTimeout(() => { window.location.href = targetUrl; }, 300);
+      } else {
+        // Dead end: snap back then shake
+        wrapper.style.transform = "translateX(0) scale(1)";
+        wrapper.style.opacity = "1";
+        wrapper.addEventListener("transitionend", function onSnap() {
+          wrapper.removeEventListener("transitionend", onSnap);
+          wrapper.classList.add("photo-detail-shake");
+          wrapper.addEventListener("animationend", function onShake() {
+            wrapper.removeEventListener("animationend", onShake);
+            wrapper.classList.remove("photo-detail-shake");
+          });
+        });
+      }
+    } else {
+      // Not enough: snap back to center
+      wrapper.style.transform = "translateX(0) scale(1)";
+      wrapper.style.opacity = "1";
+    }
+  }, { passive: true });
+});
+
 // Show bottom nav bar on scroll
 document.addEventListener("DOMContentLoaded", () => {
   const bottomNav = document.querySelector(".bottom-nav");
