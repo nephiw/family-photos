@@ -16,16 +16,15 @@ class Album(models.Model):
         User, on_delete=models.CASCADE, related_name="created_albums"
     )
     photos = models.ManyToManyField("Photo", through="PhotoAlbum", related_name="albums")
+    cover_photo = models.ForeignKey(
+        "Photo", on_delete=models.SET_NULL, null=True, blank=True, related_name="cover_of"
+    )
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
         return self.name
-
-    @property
-    def cover_photo(self):
-        return self.photoalbum_set.select_related("photo").order_by("-photo__uploaded_at").first()
 
 
 class PhotoAlbum(models.Model):

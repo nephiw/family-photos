@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 
@@ -232,6 +232,13 @@ def photo_detail(request, pk):
     ).distinct()
     photo_albums = photo.albums.filter(pk__in=user_albums.values_list("pk", flat=True))
 
+    back_album = None
+    album_param = request.GET.get("album")
+    if album_param and album_param.isdigit():
+        back_album = user_albums.filter(pk=int(album_param)).first()
+    if not back_album:
+        back_album = Album.objects.filter(name="Family Photos").first()
+
     if request.htmx:
         return render(
             request,
@@ -251,6 +258,7 @@ def photo_detail(request, pk):
             "photos": photos,
             "is_admin": request.user.is_superuser,
             "photo_albums": photo_albums,
+            "back_album": back_album,
         },
     )
 
@@ -651,6 +659,22 @@ def bulk_download(request, album_pk):
     response = StreamingHttpResponse(zs, content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def set_album_cover(request, album_pk, photo_pk):
+    album = get_object_or_404(Album, pk=album_pk)
+    photo = get_object_or_404(Photo, pk=photo_pk)
+    if request.user != album.created_by and not request.user.is_superuser:
+        messages.error(request, "You don't have permission to edit this album.")
+        return redirect("gallery:album_detail", pk=album_pk)
+    if not album.photos.filter(pk=photo_pk).exists():
+        messages.error(request, "Photo is not in this album.")
+        return redirect("gallery:album_detail", pk=album_pk)
+    album.cover_photo = photo
+    album.save(update_fields=["cover_photo"])
+    messages.success(request, f"Set photo as the cover for '{album.name}'.")
+    return redirect(f"{reverse('gallery:photo_detail', args=[photo_pk])}?album={album_pk}")
 
 
 @login_required

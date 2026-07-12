@@ -33,6 +33,7 @@ urlpatterns = [
     path("albums/<int:album_pk>/bulk/add-to-album/", views.bulk_add_to_album, name="bulk_add_to_album"),
     path("albums/<int:album_pk>/bulk/create-album/", views.bulk_create_album, name="bulk_create_album"),
     path("albums/<int:album_pk>/bulk/download/", views.bulk_download, name="bulk_download"),
+    path("albums/<int:album_pk>/set-cover/<int:photo_pk>/", views.set_album_cover, name="set_album_cover"),
     # Users (admin only)
     path("users/", views.user_list, name="user_list"),
     path("users/add/", views.user_add, name="user_add"),

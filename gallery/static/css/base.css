@@ -482,6 +482,7 @@ a:hover {
 .space-between { justify-content: space-between; }
 .align-center { align-items: center; }
 .gap\:half { gap: 0.5rem; }
+.gap\:1 { gap: 1rem; }
 
 /* Responsive: icon-only buttons */
 .login-page #btn-login-nav { display: none; }
@@ -502,5 +503,3 @@ a:hover {
     .sort-bar .btn .btn-text { display: none; }
     .sort-bar .btn { padding: 0.4rem; min-width: 36px; min-height: 36px; }
 }
-
-.photo-detail-nav .btn .btn-text { display: none; }

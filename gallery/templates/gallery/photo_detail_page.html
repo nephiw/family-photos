@@ -8,15 +8,15 @@
 {% block content %}
 <div class="photo-detail-page">
     <div class="photo-detail-nav">
-        <a href="{% url 'gallery:album_list' %}" class="btn btn-cyan">
+        <a href="{% url 'gallery:album_detail' back_album.pk %}" class="btn btn-cyan">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            <span class="btn-text">Back to Albums</span>
+            <span class="btn-text">Back to {{ back_album.name }}</span>
         </a>
 
         <div class="photo-detail-nav-arrows">
             {% with prev=photo.get_next_by_uploaded_at %}
                 {% if prev %}
-                    <a href="{% url 'gallery:photo_detail' prev.pk %}" class="btn btn-purple">
+                    <a href="{% url 'gallery:photo_detail' prev.pk %}{% if back_album %}?album={{ back_album.pk }}{% endif %}" class="btn btn-purple">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                         <span class="btn-text">Previous</span>
                     </a>
@@ -29,7 +29,7 @@
             {% endwith %}
             {% with next=photo.get_previous_by_uploaded_at %}
                 {% if next %}
-                    <a href="{% url 'gallery:photo_detail' next.pk %}" class="btn btn-purple">
+                    <a href="{% url 'gallery:photo_detail' next.pk %}{% if back_album %}?album={{ back_album.pk }}{% endif %}" class="btn btn-purple">
                         <span class="btn-text">Next</span>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </a>
@@ -76,7 +76,7 @@
             {% if photo_albums %}
             <div class="photo-detail-meta-section">
                 <div class="meta-label">Albums</div>
-                <div class="meta-value" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <div class="meta-value flex-container gap:half" style="flex-wrap: wrap;">
                     {% for a in photo_albums %}
                         <a href="{% url 'gallery:album_detail' a.pk %}" class="album-tag">{{ a.name }}</a>
                     {% endfor %}
@@ -94,6 +94,17 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                 <span class="btn-text">Add to Album</span>
             </a>
+            {% for a in photo_albums %}
+                {% if is_admin or a.created_by == request.user %}
+                <form action="{% url 'gallery:set_album_cover' a.pk photo.pk %}" method="post" style="display: inline-flex;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-cyan" {% if a.cover_photo == photo %}disabled title="Already the cover photo for {{ a.name }}"{% else %}title="Set as the cover photo for {{ a.name }}"{% endif %}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span class="btn-text">{% if a.cover_photo == photo %}Current Cover{% else %}Set as Cover{% endif %}</span>
+                    </button>
+                </form>
+                {% endif %}
+            {% endfor %}
             {% if is_admin or photo.uploaded_by == request.user %}
             <form action="{% url 'gallery:photo_delete' photo.pk %}" method="post" onsubmit="return confirm('Delete this photo permanently?')" style="display: inline-flex;">
                 {% csrf_token %}

@@ -111,7 +111,7 @@ function initDragAndDrop() {
       const itemHtml = `
                 <div class="upload-progress-item" id="${itemId}">
                     <div style="flex-grow: 1; margin-right: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                        <div class="flex-container space-between" style="font-weight: bold;">
                             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">${file.name}</span>
                             <span class="progress-pct" style="color: var(--neon-cyan);">0%</span>
                         </div>

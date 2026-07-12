@@ -1,4 +1,4 @@
-<div class="photo-card" data-photo-id="{{ photo.pk }}" data-detail-url="{% url 'gallery:photo_detail' photo.pk %}" title="Click to view full photo">
+<div class="photo-card" data-photo-id="{{ photo.pk }}" data-detail-url="{% url 'gallery:photo_detail' photo.pk %}{% if album %}?album={{ album.pk }}{% endif %}" title="Click to view full photo">
     <div class="bulk-checkbox" style="display: none; position: absolute; top: 0.5rem; left: 0.5rem; z-index: 2;">
         <input type="checkbox" name="photos" value="{{ photo.pk }}" style="width: 1.4em; height: 1.4em; cursor: pointer;">
     </div>

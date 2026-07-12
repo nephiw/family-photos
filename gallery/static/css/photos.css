@@ -178,6 +178,10 @@
 }
 
 @media (max-width: 600px) {
-    .photo-detail-actions .btn .btn-text { display: none; }
     .photo-detail-actions .btn { padding: 0.5rem; min-width: 36px; min-height: 36px; }
+}
+
+.photo-detail-nav .btn .btn-text { display: none; }
+@media (min-width: 655px) {
+    .photo-detail-nav .btn .btn-text { display: block; }
 }
