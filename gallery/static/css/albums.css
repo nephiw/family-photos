@@ -74,9 +74,15 @@
     font-family: var(--font-retro);
 }
 
+@media (max-width: 1200px) {
+    .album-description { display: none; }
+}
+
 @media (max-width: 600px) {
     .album-card { flex-direction: column; align-items: stretch; }
     .album-card-cover { width: 100%; height: 160px; }
+    .album-list-header .btn .btn-text { display: none; }
+    .album-list-header .btn { padding: 0.5rem; min-width: 36px; min-height: 36px; }
 }
 
 /* Album Choose Photos */
