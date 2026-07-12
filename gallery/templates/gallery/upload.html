@@ -7,6 +7,18 @@ Event Photos{% endblock %} {% block content %}
             Drop your photos below or click to browse
         </p>
 
+        {% if albums %}
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="album-select" style="display: block; font-family: var(--font-retro); font-size: 0.85rem; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Upload to Album</label>
+            <select id="album-select" class="sort-select" style="width: 100%;">
+                <option value="">No Album</option>
+                {% for album in albums %}
+                <option value="{{ album.pk }}" {% if selected_album and selected_album.pk == album.pk %}selected{% endif %}>{{ album.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
         <!-- Drag and drop zone -->
         <div class="upload-dropzone" id="dropzone">
             <div class="upload-icon">

@@ -19,7 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Confirm upload finishes and return to the gallery
 window.confirmUploads = function () {
-  window.location.href = "/photos/";
+  const albumSelect = document.getElementById("album-select");
+  const albumId = albumSelect ? albumSelect.value : "";
+  if (albumId) {
+    window.location.href = "/albums/" + albumId + "/";
+  } else {
+    window.location.href = "/albums/";
+  }
 };
 
 // Set up Drag & Drop for uploads
@@ -206,6 +212,10 @@ function initDragAndDrop() {
       const xhr = new XMLHttpRequest();
       const formData = new FormData();
       formData.append("photos", fileToUpload);
+      const albumSelect = document.getElementById("album-select");
+      if (albumSelect && albumSelect.value) {
+        formData.append("album", albumSelect.value);
+      }
 
       xhr.open("POST", "/photos/upload/", true);
       xhr.setRequestHeader("X-CSRFToken", getCsrfToken());

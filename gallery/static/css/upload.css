@@ -1,0 +1,145 @@
+/* Upload Dropzone */
+.upload-dropzone {
+    border: 3px dashed var(--neon-purple);
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: rgba(157, 0, 255, 0.03);
+    margin-bottom: 1.5rem;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+    border-color: var(--neon-cyan);
+    box-shadow: var(--shadow-cyan);
+    background-color: rgba(0, 240, 255, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    font-family: var(--font-retro);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-subtext {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+}
+
+.upload-progress-container {
+    margin-top: 1.5rem;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--neon-purple);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: none;
+}
+
+.upload-progress-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(157, 0, 255, 0.2);
+    font-size: 0.9rem;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    background-color: #0b0c16;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.25rem;
+    border: 1px solid var(--neon-purple);
+}
+
+.progress-bar {
+    background-color: var(--neon-pink);
+    box-shadow: 0 0 8px var(--neon-pink);
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+/* Upload Page */
+.upload-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 70vh;
+    padding: 2rem;
+}
+
+.upload-page-card {
+    background-color: var(--bg-card);
+    border: 3px solid var(--neon-purple);
+    border-radius: 8px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 650px;
+    box-shadow: 0 0 20px rgba(157, 0, 255, 0.2);
+}
+
+.upload-page-title {
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+}
+
+.upload-page-subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.upload-progress-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-progress-title {
+    font-size: 0.9rem;
+    color: var(--neon-yellow);
+    font-family: var(--font-retro);
+}
+
+.upload-complete {
+    display: none;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.upload-complete-icon {
+    font-size: 3rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    margin-bottom: 1rem;
+}
+
+.upload-complete-heading {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-complete-text {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+}
+
+.upload-complete-btn {
+    width: 100%;
+}

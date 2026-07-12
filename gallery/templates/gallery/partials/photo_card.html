@@ -1,5 +1,7 @@
-<a href="{% url 'gallery:photo_detail' photo.pk %}" class="photo-card" data-photo-id="{{ photo.pk }}" title="Click to view full photo">
-    
+<div class="photo-card" data-photo-id="{{ photo.pk }}" data-detail-url="{% url 'gallery:photo_detail' photo.pk %}" title="Click to view full photo">
+    <div class="bulk-checkbox" style="display: none; position: absolute; top: 0.5rem; left: 0.5rem; z-index: 2;">
+        <input type="checkbox" name="photos" value="{{ photo.pk }}" style="width: 1.4em; height: 1.4em; cursor: pointer;">
+    </div>
     <div class="photo-img-wrapper">
         {% if photo.thumbnail %}
             <img src="{{ photo.thumbnail.url }}" alt="{{ photo.caption|default:'Family photo' }}" loading="lazy">
@@ -20,4 +22,4 @@
             <span class="photo-date-uploaded">Uploaded: {{ photo.uploaded_at|date:"M d, Y" }}</span>
         </span>
     </div>
-</a>
+</div>

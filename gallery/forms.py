@@ -3,6 +3,19 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 
+from .models import Album
+
+
+class AlbumForm(forms.ModelForm):
+    class Meta:
+        model = Album
+        fields = ["name", "description"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({"class": "retro-input", "autocomplete": "off"})
+
 
 class RetroUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=False, widget=forms.TextInput(attrs={'placeholder': 'First Name'}))

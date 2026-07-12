@@ -52,7 +52,8 @@
             </div>
         </div>
 
-        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'gallery:user_albums' profile_user.pk %}" class="btn btn-yellow">Albums</a>
             <a href="{% url 'gallery:user_edit' profile_user.pk %}" class="btn btn-cyan">Edit User</a>
             <a href="{% url 'gallery:user_list' %}" class="btn btn-purple">Back to Users</a>
         </div>

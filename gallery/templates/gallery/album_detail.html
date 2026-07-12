@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ album.name }} - Family Event Photos{% endblock %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <a href="{% url 'gallery:album_list' %}" class="btn btn-purple" style="margin-bottom: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Albums
+            </a>
+            <h1 style="margin-bottom: 0;">{{ album.name }}</h1>
+            {% if album.description %}
+                <p style="color: var(--text-dim); margin-top: 0.5rem;">{{ album.description }}</p>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+            <button type="button" class="btn btn-yellow" id="bulk-toggle" onclick="toggleBulkMode()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span class="btn-text">Bulk Action</span>
+            </button>
+            <a href="{% url 'gallery:album_download_zip' album.pk %}" class="btn btn-cyan" title="Download Album" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span class="btn-text">Download Album</span>
+            </a>
+            <a href="{% url 'gallery:photo_upload' %}?album={{ album.pk }}" class="btn btn-pink" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span class="btn-text">Upload</span>
+            </a>
+            {% if user.is_superuser or album.created_by == user %}{% if album.name != "Family Photos" %}
+            <form method="post" action="{% url 'gallery:album_delete' album.pk %}" onsubmit="return confirm('Delete album &quot;{{ album.name }}&quot; and all its photos?')" style="display: inline-flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-red" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span class="btn-text">Delete Album</span>
+                </button>
+            </form>
+            {% endif %}{% endif %}
+        </div>
+    </div>
+
+    <!-- Bulk Action Bar (hidden by default) -->
+    <div id="bulk-bar" class="bulk-bar" style="display: none;">
+        <span id="bulk-count" style="font-family: var(--font-retro); font-size: 0.85rem; color: var(--neon-yellow);">0 selected</span>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button type="button" id="bulk-toggle-all" class="btn btn-purple" onclick="selectAll()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg id="toggle-all-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span class="btn-text">Toggle All</span>
+            </button>
+            <button type="button" class="btn btn-cyan" onclick="bulkDownload()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download
+            </button>
+            <button type="button" class="btn btn-red" onclick="bulkDelete()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Delete
+            </button>
+            <button type="button" class="btn btn-cyan" onclick="showAddToAlbumModal()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Add to Album
+            </button>
+            <button type="button" class="btn btn-pink" onclick="showCreateAlbumModal()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New Album
+            </button>
+        </div>
+    </div>
+
+    <!-- Add to Album Modal -->
+    <dialog id="add-to-album-modal">
+        <div class="dialog-header">
+            <h3 style="color: var(--neon-cyan);">Add to Album</h3>
+            <button class="dialog-close" onclick="document.getElementById('add-to-album-modal').close()">&times;</button>
+        </div>
+        <form method="post" action="{% url 'gallery:bulk_add_to_album' album.pk %}" id="bulk-add-form">
+            {% csrf_token %}
+            <input type="hidden" name="photos" id="bulk-add-photos">
+            <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
+                {% for a in albums %}
+                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border: 1px solid var(--neon-purple); border-radius: 4px; cursor: pointer;">
+                    <input type="radio" name="target_album" value="{{ a.pk }}" style="width: 1.2em; height: 1.2em;">
+                    <div>
+                        <div style="font-weight: bold; color: var(--neon-cyan);">{{ a.name }}</div>
+                        {% if a.description %}<div style="color: var(--text-dim); font-size: 0.85rem;">{{ a.description }}</div>{% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-purple" onclick="document.getElementById('add-to-album-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-cyan">Add to Album</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Create Album Modal -->
+    <dialog id="create-album-modal">
+        <div class="dialog-header">
+            <h3 style="color: var(--neon-pink);">Create New Album</h3>
+            <button class="dialog-close" onclick="document.getElementById('create-album-modal').close()">&times;</button>
+        </div>
+        <form method="post" action="{% url 'gallery:bulk_create_album' album.pk %}" id="bulk-create-form">
+            {% csrf_token %}
+            <input type="hidden" name="photos" id="bulk-create-photos">
+            <div class="form-group">
+                <label for="new-album-name">Album Name</label>
+                <input type="text" name="new_album_name" id="new-album-name" class="retro-input" placeholder="My New Album" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-purple" onclick="document.getElementById('create-album-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-pink">Create Album</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Sort controls -->
+    <div class="sort-bar flex-container space-between align-center">
+        <div class="flex-container align-center gap:half">
+            <span class="sort-label">Sort by</span>
+            <select class="sort-select" id="sort-select" onchange="window.location.href='?sort='+this.value+'&amp;dir={{ dir }}'">
+                <option value="uploaded" {% if sort == 'uploaded' %}selected{% endif %}>Upload Date</option>
+                <option value="taken" {% if sort == 'taken' %}selected{% endif %}>Date Taken</option>
+            </select>
+            <a href="?sort={{ sort }}&amp;dir={% if dir == 'desc' %}asc{% else %}desc{% endif %}" class="btn btn-sort-dir" title="Toggle ascending/descending">
+                {% if dir == 'desc' %}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                {% else %}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Photo Gallery Grid Wrapper -->
+    <div id="photo-grid"
+         hx-get="{% url 'gallery:album_detail' album.pk %}?sort={{ sort }}&amp;dir={{ dir }}"
+         hx-trigger="refreshGrid from:body"
+         hx-target="#photo-grid"
+         hx-swap="outerHTML">
+        {% include 'gallery/partials/photo_grid.html' %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var bulkMode = false;
+
+function toggleBulkMode() {
+    bulkMode = !bulkMode;
+    var bar = document.getElementById('bulk-bar');
+    var checkboxes = document.querySelectorAll('.bulk-checkbox');
+    var btn = document.getElementById('bulk-toggle');
+    var cards = document.querySelectorAll('.photo-card');
+
+    bar.style.display = bulkMode ? 'flex' : 'none';
+    checkboxes.forEach(function(cb) {
+        cb.style.display = bulkMode ? 'block' : 'none';
+    });
+    cards.forEach(function(c) {
+        c.style.cursor = bulkMode ? 'pointer' : '';
+    });
+    btn.classList.toggle('btn-yellow-active', bulkMode);
+    if (!bulkMode) {
+        checkboxes.forEach(function(cb) { cb.querySelector('input').checked = false; });
+        updateBulkCount();
+    }
+}
+
+function updateBulkCount() {
+    var checked = document.querySelectorAll('.bulk-checkbox input:checked').length;
+    document.getElementById('bulk-count').textContent = checked + ' selected';
+    updateToggleIcon();
+    var bulkBar = document.getElementById('bulk-bar');
+    bulkBar.querySelectorAll('.btn').forEach(function(btn) {
+        if (btn.id === 'bulk-toggle-all') return;
+        btn.disabled = checked === 0;
+    });
+}
+
+function getSelectedPhotoIds() {
+    var ids = [];
+    document.querySelectorAll('.bulk-checkbox input:checked').forEach(function(cb) {
+        ids.push(cb.value);
+    });
+    return ids;
+}
+
+function selectAll() {
+    var checkboxes = document.querySelectorAll('.bulk-checkbox input');
+    var allChecked = true;
+    checkboxes.forEach(function(cb) { if (!cb.checked) allChecked = false; });
+    checkboxes.forEach(function(cb) { cb.checked = !allChecked; });
+    updateBulkCount();
+    updateToggleIcon();
+}
+
+function updateToggleIcon() {
+    var icon = document.getElementById('toggle-all-icon');
+    if (!icon) return;
+    var allChecked = true;
+    document.querySelectorAll('.bulk-checkbox input').forEach(function(cb) { if (!cb.checked) allChecked = false; });
+    if (allChecked) {
+        icon.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>';
+    } else {
+        icon.innerHTML = '<polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>';
+    }
+}
+
+function bulkDownload() {
+    var ids = getSelectedPhotoIds();
+    if (ids.length === 0) { alert('No photos selected.'); return; }
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "gallery:bulk_download" album.pk %}';
+    var photosInput = document.createElement('input');
+    photosInput.type = 'hidden';
+    photosInput.name = 'photos';
+    photosInput.value = ids.join(',');
+    form.appendChild(photosInput);
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrf) form.appendChild(csrf.cloneNode(true));
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function bulkDelete() {
+    var ids = getSelectedPhotoIds();
+    if (ids.length === 0) { alert('No photos selected.'); return; }
+    if (!confirm('Remove ' + ids.length + ' photo(s) from this album?')) return;
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "gallery:bulk_delete" album.pk %}';
+    ids.forEach(function(id) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'photos';
+        input.value = id;
+        form.appendChild(input);
+    });
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrf) form.appendChild(csrf.cloneNode(true));
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function showAddToAlbumModal() {
+    var ids = getSelectedPhotoIds();
+    if (ids.length === 0) { alert('No photos selected.'); return; }
+    document.getElementById('bulk-add-photos').value = ids.join(',');
+    document.getElementById('add-to-album-modal').showModal();
+}
+
+function showCreateAlbumModal() {
+    var ids = getSelectedPhotoIds();
+    if (ids.length === 0) { alert('No photos selected.'); return; }
+    document.getElementById('bulk-create-photos').value = ids.join(',');
+    document.getElementById('create-album-modal').showModal();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.bulk-checkbox input').forEach(function(cb) {
+        cb.addEventListener('change', updateBulkCount);
+    });
+
+    document.getElementById('photo-grid').addEventListener('click', function(e) {
+        var card = e.target.closest('.photo-card');
+        if (!card) return;
+        if (bulkMode) {
+            e.preventDefault();
+            var cb = card.querySelector('.bulk-checkbox input');
+            if (cb) { cb.checked = !cb.checked; updateBulkCount(); }
+        } else {
+            window.location.href = card.dataset.detailUrl;
+        }
+    });
+
+    var hadPending = false;
+    var pollInterval = setInterval(async function() {
+        try {
+            var resp = await fetch('{% url "gallery:thumbnail_status" %}');
+            var data = await resp.json();
+            if (data.pending > 0) { hadPending = true; }
+            if (hadPending && data.pending === 0) {
+                clearInterval(pollInterval);
+                document.body.dispatchEvent(new CustomEvent('refreshGrid'));
+                return;
+            }
+            if (data.ready.length > 0 && data.pending > 0) {
+                document.body.dispatchEvent(new CustomEvent('refreshGrid'));
+            }
+        } catch(e) {
+            console.error('Thumbnail poll error:', e);
+        }
+    }, 3000);
+});
+</script>
+{% endblock %}

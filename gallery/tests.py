@@ -2,6 +2,7 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from .models import Album
 import tempfile
 import shutil
 from io import BytesIO
@@ -28,6 +29,7 @@ class GalleryTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(username='family_member', password='password123')
         self.admin = User.objects.create_superuser(username='admin_operator', password='adminpassword')
+        Album.objects.get_or_create(name="Family Photos", defaults={"created_by": self.admin})
 
     def test_anonymous_redirect(self):
         response = self.client.get(reverse('gallery:home'))
@@ -36,14 +38,13 @@ class GalleryTests(TestCase):
     def test_authenticated_home(self):
         self.client.login(username='family_member', password='password123')
         response = self.client.get(reverse('gallery:home'))
-        self.assertRedirects(response, reverse('gallery:photo_list'))
+        self.assertRedirects(response, reverse('gallery:album_list'))
 
     def test_authenticated_photo_list(self):
         self.client.login(username='family_member', password='password123')
         response = self.client.get(reverse('gallery:photo_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Hello, family_member!")
-        self.assertContains(response, "No Photos Uploaded Yet")
+        family_album = Album.objects.get(name="Family Photos")
+        self.assertRedirects(response, reverse('gallery:album_detail', args=[family_album.pk]))
 
     def test_upload_photo(self):
         self.client.login(username='family_member', password='password123')
@@ -66,7 +67,7 @@ class GalleryTests(TestCase):
         self.client.login(username='family_member', password='password123')
 
         response = self.client.get(reverse('gallery:download_zip'))
-        self.assertRedirects(response, reverse('gallery:photo_list'))
+        self.assertRedirects(response, reverse('gallery:album_list'))
 
         img = get_temporary_image()
         self.client.post(reverse('gallery:photo_upload'), {'photos': [img]})

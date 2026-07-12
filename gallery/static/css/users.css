@@ -1,0 +1,68 @@
+/* Login / Add User Pages */
+.login-wrapper,
+.add-user-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.login-card,
+.add-user-card {
+    background-color: var(--bg-card);
+    border: 4px solid var(--neon-pink);
+    box-shadow: var(--shadow-pink);
+    border-radius: 8px;
+    padding: 3rem;
+    width: 100%;
+    position: relative;
+}
+
+.login-card { max-width: 480px; }
+.add-user-card { max-width: 768px; }
+
+.add-user-logo,
+.login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.add-user-logo h2,
+.login-logo h2 {
+    font-size: 2.2rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.add-user-logo p,
+.login-logo p {
+    font-family: var(--font-retro);
+    font-size: 0.8rem;
+    color: var(--neon-pink);
+    text-shadow: 0 0 5px var(--neon-pink);
+    text-transform: uppercase;
+}
+
+/* Admin Dashboard Widget */
+.admin-widget {
+    background-color: rgba(255, 234, 0, 0.05);
+    border: 2px solid var(--neon-yellow);
+    box-shadow: 0 0 8px rgba(255, 234, 0, 0.2);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-widget-info {
+    font-family: var(--font-retro);
+    font-size: 0.95rem;
+    color: var(--neon-yellow);
+}
+
+.admin-widget-info span {
+    font-weight: bold;
+    font-size: 1.1rem;
+}

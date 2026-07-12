@@ -8,6 +8,36 @@ from django.db import models
 from PIL import Image, ImageOps
 
 
+class Album(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="created_albums"
+    )
+    photos = models.ManyToManyField("Photo", through="PhotoAlbum", related_name="albums")
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def cover_photo(self):
+        return self.photoalbum_set.select_related("photo").order_by("-photo__uploaded_at").first()
+
+
+class PhotoAlbum(models.Model):
+    photo = models.ForeignKey("Photo", on_delete=models.CASCADE)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("photo", "album")
+        ordering = ["-added_at"]
+
+
 class Photo(models.Model):
     image = models.ImageField(upload_to="photos/")
     medium = models.ImageField(upload_to="medium/", blank=True, null=True)

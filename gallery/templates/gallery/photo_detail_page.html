@@ -8,9 +8,9 @@
 {% block content %}
 <div class="photo-detail-page">
     <div class="photo-detail-nav">
-        <a href="{% url 'gallery:photo_list' %}" class="btn btn-cyan">
+        <a href="{% url 'gallery:album_list' %}" class="btn btn-cyan">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            <span class="btn-text">Back to Gallery</span>
+            <span class="btn-text">Back to Albums</span>
         </a>
 
         <div class="photo-detail-nav-arrows">
@@ -73,12 +73,26 @@
                 <div class="meta-value">{{ photo.caption }}</div>
             </div>
             {% endif %}
+            {% if photo_albums %}
+            <div class="photo-detail-meta-section">
+                <div class="meta-label">Albums</div>
+                <div class="meta-value" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {% for a in photo_albums %}
+                        <a href="{% url 'gallery:album_detail' a.pk %}" class="album-tag">{{ a.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="photo-detail-actions">
             <a href="{{ photo.image.url }}" target="_blank" class="btn btn-pink">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span class="btn-text">View Full Size</span>
+            </a>
+            <a href="{% url 'gallery:photo_add_to_album' photo.pk %}" class="btn btn-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span class="btn-text">Add to Album</span>
             </a>
             {% if is_admin or photo.uploaded_by == request.user %}
             <form action="{% url 'gallery:photo_delete' photo.pk %}" method="post" onsubmit="return confirm('Delete this photo permanently?')" style="display: inline-flex;">
